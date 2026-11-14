@@ -25,7 +25,10 @@ interface MembershipCardProps {
 function MembershipCardComponent({ name, type, number, points, validity }: MembershipCardProps) {
   const currentUser = useAuthStore((state) => state.currentUser);
   const rawTier = String(type || currentUser?.membership || currentUser?.membershipTier || 'gold').toLowerCase();
-  const effectiveType: 'silver' | 'gold' | 'diamond' = (['silver', 'gold', 'diamond'].includes(rawTier) ? rawTier : 'gold') as any;
+  let effectiveType: 'silver' | 'gold' | 'diamond' = 'gold';
+  if (rawTier.includes('diamond')) effectiveType = 'diamond';
+  else if (rawTier.includes('silver')) effectiveType = 'silver';
+  else if (rawTier.includes('gold')) effectiveType = 'gold';
   const isGuestUser =
     !currentUser ||
     currentUser.isGuest ||

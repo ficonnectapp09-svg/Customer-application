@@ -4362,8 +4362,8 @@ export default function CategoryDetails() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary || '#FF6A00']}
-            tintColor={colors.primary || '#FF6A00'}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         onScroll={({ nativeEvent }) => {
@@ -4672,7 +4672,7 @@ export default function CategoryDetails() {
                                   </>
                                 ) : (
                                   <>
-                                    <Icons.ShoppingCart color="#FF6A00" size={11} strokeWidth={2.5} />
+                                    <Icons.ShoppingCart color={colors.primary} size={11} strokeWidth={2.5} />
                                     <Text style={styles.compactOutlineBtnText} numberOfLines={1}>Add to Cart</Text>
                                   </>
                                 )}
@@ -5282,8 +5282,8 @@ export default function CategoryDetails() {
                                       </>
                                     ) : (
                                       <>
-                                        <Icons.ShoppingCart color="#FF6A00" size={12} strokeWidth={2.5} />
-                                        <Text style={[styles.travelActionBtnText, { color: '#FF6A00' }]} numberOfLines={1}>
+                                        <Icons.ShoppingCart color={colors.primary} size={12} strokeWidth={2.5} />
+                                        <Text style={[styles.travelActionBtnText, { color: colors.primary }]} numberOfLines={1}>
                                           Add to Cart
                                         </Text>
                                       </>
@@ -5474,7 +5474,7 @@ export default function CategoryDetails() {
                                       </>
                                     ) : (
                                       <>
-                                        <Icons.ShoppingCart color="#FF6A00" size={11} strokeWidth={2.5} />
+                                        <Icons.ShoppingCart color={colors.primary} size={11} strokeWidth={2.5} />
                                         <Text style={styles.compactOutlineBtnText} numberOfLines={1}>Add to Cart</Text>
                                       </>
                                     )}
@@ -5546,7 +5546,7 @@ export default function CategoryDetails() {
                                     </>
                                   ) : (
                                     <>
-                                      <Icons.ShoppingCart color="#FF6A00" size={11} strokeWidth={2.5} />
+                                      <Icons.ShoppingCart color={colors.primary} size={11} strokeWidth={2.5} />
                                       <Text style={styles.compactOutlineBtnText} numberOfLines={1}>Add to Cart</Text>
                                     </>
                                   )}
@@ -5963,12 +5963,12 @@ export default function CategoryDetails() {
                     disabled={!selectedBoardingPoint || !selectedDroppingPoint}
                     style={[
                       styles.confirmBookingBtn,
-                      { flex: 1, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#FF6A00' },
+                      { flex: 1, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.primary },
                       (!selectedBoardingPoint || !selectedDroppingPoint) && { opacity: 0.5 },
                     ]}
                     onPress={handleAddToCartFromScheduler}
                   >
-                    <Text style={[styles.confirmBookingBtnText, { color: '#FF6A00' }]}>
+                    <Text style={[styles.confirmBookingBtnText, { color: colors.primary }]}>
                       Add to Cart
                     </Text>
                   </TouchableOpacity>
@@ -6507,12 +6507,12 @@ export default function CategoryDetails() {
                         disabled={!selectedDateObj || !selectedSlotObj}
                         style={[
                           styles.confirmBookingBtn,
-                          { flex: 1, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#FF6A00' },
+                          { flex: 1, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.primary },
                           (!selectedDateObj || !selectedSlotObj) && { opacity: 0.5 },
                         ]}
                         onPress={handleAddToCartFromScheduler}
                       >
-                        <Text style={[styles.confirmBookingBtnText, { color: '#FF6A00' }]}>
+                        <Text style={[styles.confirmBookingBtnText, { color: colors.primary }]}>
                           Add to Cart
                         </Text>
                       </TouchableOpacity>
@@ -10141,7 +10141,7 @@ const styles = StyleSheet.create({
     height: 31,
     borderRadius: 7,
     borderWidth: 1.4,
-    borderColor: '#FF6A00',
+    borderColor: '#8B681F',
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
@@ -10156,13 +10156,13 @@ const styles = StyleSheet.create({
   compactOutlineBtnText: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#FF6A00',
+    color: '#F5B51B',
   },
   compactPrimaryBtn: {
     flex: 1,
     height: 31,
     borderRadius: 7,
-    backgroundColor: '#FF6A00',
+    backgroundColor: '#F5B51B',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -10172,7 +10172,7 @@ const styles = StyleSheet.create({
   compactPrimaryBtnText: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#020B1A',
   },
   compactCartIconButton: {
     width: 32,
@@ -10187,7 +10187,7 @@ const styles = StyleSheet.create({
   compactCtaButton: {
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#FF6A00',
+    backgroundColor: '#F5B51B',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 10,
@@ -10195,7 +10195,7 @@ const styles = StyleSheet.create({
   compactCtaButtonText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#020B1A',
   },
   stepperContainer: {
     flexDirection: 'row',
@@ -10233,9 +10233,9 @@ const styles = StyleSheet.create({
     gap: 4,
     height: 32,
     borderRadius: 10,
-    backgroundColor: '#FF6A00',
+    backgroundColor: '#F5B51B',
     flex: 1,
-    shadowColor: '#FF6A00',
+    shadowColor: '#F5B51B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3,
@@ -10244,7 +10244,7 @@ const styles = StyleSheet.create({
   compactAddBtnText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#020B1A',
   },
   floatingCartBar: {
     position: 'absolute',
@@ -11064,7 +11064,7 @@ const styles = StyleSheet.create({
   },
   travelOutlineBtn: {
     borderWidth: 1.5,
-    borderColor: '#FF6A00',
+    borderColor: '#8B681F',
     backgroundColor: '#FFFFFF',
   },
   travelOutlineBtnActive: {
@@ -11072,9 +11072,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4',
   },
   travelPrimaryBtn: {
-    backgroundColor: '#FF6A00',
+    backgroundColor: '#F5B51B',
     borderWidth: 1.5,
-    borderColor: '#FF6A00',
+    borderColor: '#8B681F',
   },
   travelActionBtnText: {
     fontSize: 11.5,

@@ -672,7 +672,7 @@ const EMPTY_GUEST_ADDRESS: CustomerAddress = {
       // 1. Instantly record order in local store
       useOrderStore.getState().addLocalOrder(newOrder);
 
-      // Notification Center & System Notification Dispatch
+      // Notification Center & System Notification Dispatch (with canonical dedupe key)
       dispatchCustomerNotification({
         title: 'Order Placed Successfully! 🛍️',
         body: `Your order #${orderId} (${cartItems[0]?.name || 'Items'}${cartItems.length > 1 ? ` +${cartItems.length - 1} more` : ''}) has been placed. Payment via Cash on Delivery.`,
@@ -682,6 +682,7 @@ const EMPTY_GUEST_ADDRESS: CustomerAddress = {
         actionType: 'order',
         orderType: 'order',
         orderId: orderId,
+        dedupeKey: `order_${orderId}_placed`,
         targetScreen: 'Orders',
         targetParams: { activeTab: 'my orders', category: resolvedOrderCategory, orderId },
       });
@@ -845,7 +846,7 @@ const EMPTY_GUEST_ADDRESS: CustomerAddress = {
     // 1. Instantly record in local store
     useOrderStore.getState().addLocalOrder(newOrder);
 
-    // Notification Center & System Notification Dispatch
+    // Notification Center & System Notification Dispatch (with canonical dedupe key)
     dispatchCustomerNotification({
       title: 'Payment Complete & Order Placed! 🛍️',
       body: `Payment of ₹${totalAmount.toLocaleString('en-IN')} verified. Order #${confirmedOrderId} (${cartItems[0]?.name || 'Items'}${cartItems.length > 1 ? ` +${cartItems.length - 1} more` : ''}) is confirmed and being prepared!`,
@@ -855,6 +856,7 @@ const EMPTY_GUEST_ADDRESS: CustomerAddress = {
       actionType: 'order',
       orderType: 'order',
       orderId: confirmedOrderId,
+      dedupeKey: `order_${confirmedOrderId}_placed`,
       targetScreen: 'Orders',
       targetParams: { activeTab: 'my orders', category: resolvedOrderCategory, orderId: confirmedOrderId },
     });
@@ -1186,18 +1188,22 @@ const EMPTY_GUEST_ADDRESS: CustomerAddress = {
       <View style={[styles.bottomBar, { backgroundColor: colors.headerBackground, borderTopColor: colors.border, paddingBottom: Math.max(insets.bottom, 12) }]}>
         <View style={styles.priceSummary}>
           <Text style={[styles.bottomTotalLabel, { color: colors.textSecondary }]}>Total Amount</Text>
-          <Text style={[styles.bottomTotalVal, { color: isLight ? '#0F172A' : '#F4C400' }]}>₹{totalAmount.toLocaleString('en-IN')}</Text>
+          <Text style={[styles.bottomTotalVal, { color: isLight ? '#0F172A' : colors.primary }]}>₹{totalAmount.toLocaleString('en-IN')}</Text>
         </View>
         <TouchableOpacity
-          style={[styles.placeOrderBtn, (cartItems.length === 0 || isProcessingPayment) && { opacity: 0.5 }]}
+          style={[
+            styles.placeOrderBtn,
+            { backgroundColor: isLight ? '#FF6A00' : colors.primary, shadowColor: isLight ? '#FF6A00' : colors.primary },
+            (cartItems.length === 0 || isProcessingPayment) && { opacity: 0.5 }
+          ]}
           activeOpacity={0.85}
           onPress={handlePlaceOrder}
           disabled={cartItems.length === 0 || isProcessingPayment}
         >
           {isProcessingPayment ? (
-            <ActivityIndicator color="#0F172A" size="small" />
+            <ActivityIndicator color={isLight ? '#FFFFFF' : '#020B1A'} size="small" />
           ) : (
-            <Text style={styles.placeOrderText}>Place Order →</Text>
+            <Text style={[styles.placeOrderText, { color: isLight ? '#FFFFFF' : '#020B1A' }]}>Place Order →</Text>
           )}
         </TouchableOpacity>
       </View>

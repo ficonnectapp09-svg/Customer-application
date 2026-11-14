@@ -280,20 +280,33 @@ export default function JoinNow() {
       const registeredUser = regRes?.user || regRes?.data || null;
       const accessToken = regRes?.accessToken || regRes?.token || '';
       if (registeredUser) {
+        const canonicalId = String(
+          registeredUser._id || registeredUser.id || registeredUser.customerId || registeredUser.registrationId || cleanPhone
+        );
+        const canonicalCustId = String(
+          registeredUser.customerId || registeredUser.registrationId || (canonicalId.startsWith('FIC-CUS-') ? canonicalId : '')
+        );
+        const rawTier = String(registeredUser.membershipTier || registeredUser.membership || '').toLowerCase();
+        let normalizedTier: 'silver' | 'gold' | 'diamond' | undefined = undefined;
+        if (rawTier.includes('diamond')) normalizedTier = 'diamond';
+        else if (rawTier.includes('gold')) normalizedTier = 'gold';
+        else if (rawTier.includes('silver')) normalizedTier = 'silver';
+
         const fullUser = {
-          id: registeredUser.id || registeredUser._id || registeredUser.customerId || `cust_${cleanPhone}`,
+          id: canonicalId,
           name: registeredUser.name || cleanName,
           email: registeredUser.email || cleanEmail,
           phone: registeredUser.phone || `+91 ${cleanPhone}`,
           role: 'customer' as const,
-          membership: registeredUser.membershipTier || registeredUser.membership,
-          membershipTier: registeredUser.membershipTier,
-          membershipStatus: registeredUser.membershipStatus,
-          walletBalance: registeredUser.walletBalance || 0,
+          membership: normalizedTier,
+          membershipTier: registeredUser.membershipTier || (normalizedTier ? `${normalizedTier.charAt(0).toUpperCase() + normalizedTier.slice(1)} Club` : 'None'),
+          membershipStatus: registeredUser.membershipStatus || (normalizedTier ? 'ACTIVE' : 'INACTIVE'),
+          membershipHistory: Array.isArray(registeredUser.membershipHistory) ? registeredUser.membershipHistory : [],
+          walletBalance: typeof registeredUser.walletBalance === 'number' ? registeredUser.walletBalance : 0,
           emailVerified: true,
           phoneVerified: true,
-          customerId: registeredUser.customerId || registeredUser.registrationId,
-          registrationId: registeredUser.registrationId || registeredUser.customerId,
+          customerId: canonicalCustId || undefined,
+          registrationId: canonicalCustId || undefined,
           address: {
             address: `${house.trim()}, ${street.trim()}`,
             house: house.trim(),
@@ -302,8 +315,16 @@ export default function JoinNow() {
             state: state.trim() || 'Karnataka',
             pincode: pincode.trim() || '560034',
           },
+          addresses: Array.isArray(registeredUser.addresses) ? registeredUser.addresses : [],
+          avatar: registeredUser.avatar || registeredUser.photo || '',
+          gender: registeredUser.gender || (gender as any) || 'Male',
+          dob: registeredUser.dob || registeredUser.dateOfBirth || '',
         };
         await useAuthStore.getState().setSession(fullUser, accessToken);
+        try {
+          const { useOrderStore } = require('../../store/orderStore');
+          useOrderStore.getState().loadAllOrders(true).catch(() => {});
+        } catch {}
       } else {
         register(
           {

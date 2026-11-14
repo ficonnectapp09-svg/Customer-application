@@ -13,6 +13,7 @@ import { useWishlistStore } from '../store/wishlistStore';
 import { useToastStore } from '../store/toastStore';
 import { useAuthStore } from '../store/authStore';
 import { useAuthGuardStore } from '../store/authGuardStore';
+import { useThemeStore } from '../store/themeStore';
 
 const { width } = Dimensions.get('window');
 
@@ -61,6 +62,8 @@ interface JobCardProps {
 
 const JobCardComponent = memo(function JobCard({ job, onPress, onApply }: JobCardProps) {
   const navigation = useNavigation<any>();
+  const colors = useThemeStore((state) => state.colors);
+  const isDark = useThemeStore((state) => state.isDark);
   const wishlistItems = useWishlistStore((state) => state.wishlistItems);
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const showToast = useToastStore((state) => state.showToast);
@@ -126,7 +129,13 @@ const JobCardComponent = memo(function JobCard({ job, onPress, onApply }: JobCar
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[
+        styles.card,
+        {
+          backgroundColor: isDark ? '#0C1930' : '#FFFFFF',
+          borderColor: isDark ? '#8B681F' : '#F1EAD8',
+        },
+      ]}
       activeOpacity={0.9}
       onPress={handleCardPress}
     >
@@ -134,7 +143,7 @@ const JobCardComponent = memo(function JobCard({ job, onPress, onApply }: JobCar
       <View style={styles.cardHeader}>
         <View style={styles.headerTitleCol}>
           <View style={styles.titleRow}>
-            <Text style={styles.jobTitleText} numberOfLines={1}>
+            <Text style={[styles.jobTitleText, { color: colors.text }]} numberOfLines={1}>
               {job.title}
             </Text>
             {isInternship && (
@@ -145,7 +154,7 @@ const JobCardComponent = memo(function JobCard({ job, onPress, onApply }: JobCar
           </View>
 
           <View style={styles.companyMetaRow}>
-            <Text style={styles.companyNameText} numberOfLines={1}>
+            <Text style={[styles.companyNameText, { color: isDark ? '#C7D0DF' : '#475569' }]} numberOfLines={1}>
               {job.companyName || job.company}
             </Text>
             {job.isVerified !== false && (
@@ -258,12 +267,16 @@ const JobCardComponent = memo(function JobCard({ job, onPress, onApply }: JobCar
         </View>
 
         <TouchableOpacity
-          style={[styles.applyBtn, hasApplied && styles.appliedBtn]}
+          style={[
+            styles.applyBtn,
+            { backgroundColor: isDark ? '#F5B51B' : '#FF6A00' },
+            hasApplied && styles.appliedBtn,
+          ]}
           activeOpacity={0.85}
           onPress={handleApplyPress}
         >
-          {!hasApplied && <Icons.Send color="#FFFFFF" size={11.5} style={{ marginRight: 5 }} />}
-          <Text style={[styles.applyBtnText, hasApplied && styles.appliedBtnText]}>
+          {!hasApplied && <Icons.Send color={isDark ? '#020B1A' : '#FFFFFF'} size={11.5} style={{ marginRight: 5 }} />}
+          <Text style={[styles.applyBtnText, { color: isDark ? '#020B1A' : '#FFFFFF' }, hasApplied && styles.appliedBtnText]}>
             {hasApplied
               ? '✓ Applied'
               : isInternship

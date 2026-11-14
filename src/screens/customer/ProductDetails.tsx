@@ -593,8 +593,8 @@ export default function ProductDetails() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary || '#FF6A00']}
-            tintColor={colors.primary || '#FF6A00'}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       >
@@ -732,19 +732,19 @@ export default function ProductDetails() {
             {canonicalVertical === 'Services' ? (
               <>
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.MapPin color="#FF6A00" size={20} />
+                  <Icons.MapPin color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Doorstep</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Verified expert visit</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.ShieldCheck color="#FF6A00" size={20} />
+                  <Icons.ShieldCheck color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>30 Days Warranty</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Free service re-work</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Clock color="#FF6A00" size={20} />
+                  <Icons.Clock color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>60 Mins Arrival</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Punctual doorstep</Text>
                 </View>
@@ -752,19 +752,19 @@ export default function ProductDetails() {
             ) : canonicalVertical === 'Food' ? (
               <>
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Clock color="#FF6A00" size={20} />
+                  <Icons.Clock color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>30-45 Mins</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Express delivery</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.ShieldCheck color="#FF6A00" size={20} />
+                  <Icons.ShieldCheck color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>FSSAI Hygienic</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Sanitized kitchen</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Package color="#FF6A00" size={20} />
+                  <Icons.Package color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Hot & Fresh</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Insulated packing</Text>
                 </View>
@@ -772,19 +772,19 @@ export default function ProductDetails() {
             ) : canonicalVertical === 'Daily Needs' ? (
               <>
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Sparkles color="#FF6A00" size={20} />
+                  <Icons.Sparkles color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Farm Fresh</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>100% Quality checked</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Truck color="#FF6A00" size={20} />
+                  <Icons.Truck color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Same Day</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Direct from stores</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.ShieldCheck color="#FF6A00" size={20} />
+                  <Icons.ShieldCheck color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Best Value</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Wholesale pricing</Text>
                 </View>
@@ -792,19 +792,19 @@ export default function ProductDetails() {
             ) : canonicalVertical === 'Travel' ? (
               <>
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Clock color="#FF6A00" size={20} />
+                  <Icons.Clock color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>On-Time Trip</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Punctual schedule</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.ShieldCheck color="#FF6A00" size={20} />
+                  <Icons.ShieldCheck color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Sanitized Ride</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Clean & comfortable</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.CheckCircle color="#FF6A00" size={20} />
+                  <Icons.CheckCircle color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Instant E-Ticket</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Confirmed seat</Text>
                 </View>
@@ -812,19 +812,19 @@ export default function ProductDetails() {
             ) : (
               <>
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Truck color="#FF6A00" size={20} />
+                  <Icons.Truck color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Free Delivery</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Orders over ₹499</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.RotateCcw color="#FF6A00" size={20} />
+                  <Icons.RotateCcw color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>7 Days Return</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Easy replacement</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.ShieldCheck color="#FF6A00" size={20} />
+                  <Icons.ShieldCheck color={colors.primary} size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>100% Secure</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Verified Payment</Text>
                 </View>
@@ -1525,30 +1525,30 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#FF6A00',
-    backgroundColor: '#FFF3E8',
+    borderColor: '#8B681F',
+    backgroundColor: '#111D32',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
   },
   cartBtnInCart: {
-    backgroundColor: '#D1FAE5',
-    borderColor: '#34D399',
+    backgroundColor: '#064E3B',
+    borderColor: '#22C55E',
   },
   cartBtnText: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#FF6A00',
+    color: '#F5B51B',
   },
   buyBtn: {
     flex: 1.4,
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#FF6A00',
+    backgroundColor: '#F5B51B',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF6A00',
+    shadowColor: '#F5B51B',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.35,
     shadowRadius: 5,

@@ -195,24 +195,45 @@ export default function Login() {
       const loggedUser = res?.user || res?.data || null;
       const accessToken = res?.accessToken || res?.token || '';
       if (loggedUser) {
+        const canonicalId = String(
+          loggedUser._id || loggedUser.id || loggedUser.customerId || loggedUser.registrationId || `cust_${trimmedId}`
+        );
+        const canonicalCustId = String(
+          loggedUser.customerId || loggedUser.registrationId || (canonicalId.startsWith('FIC-CUS-') ? canonicalId : '')
+        );
+        const rawTier = String(loggedUser.membershipTier || loggedUser.membership || '').toLowerCase();
+        let normalizedTier: 'silver' | 'gold' | 'diamond' | undefined = undefined;
+        if (rawTier.includes('diamond')) normalizedTier = 'diamond';
+        else if (rawTier.includes('gold')) normalizedTier = 'gold';
+        else if (rawTier.includes('silver')) normalizedTier = 'silver';
+
         const fullUser = {
-          id: loggedUser.id || loggedUser._id || loggedUser.customerId || `cust_${trimmedId}`,
+          id: canonicalId,
           name: loggedUser.name || (trimmedId.includes('@') ? trimmedId.split('@')[0] : 'Connect Customer'),
           email: loggedUser.email || (trimmedId.includes('@') ? trimmedId : ''),
           phone: loggedUser.phone || (!trimmedId.includes('@') ? trimmedId : ''),
           role: 'customer' as const,
-          membership: loggedUser.membershipTier || loggedUser.membership,
-          membershipTier: loggedUser.membershipTier,
-          membershipStatus: loggedUser.membershipStatus,
-          walletBalance: loggedUser.walletBalance || 0,
+          membership: normalizedTier,
+          membershipTier: loggedUser.membershipTier || (normalizedTier ? `${normalizedTier.charAt(0).toUpperCase() + normalizedTier.slice(1)} Club` : 'None'),
+          membershipStatus: loggedUser.membershipStatus || (normalizedTier ? 'ACTIVE' : 'INACTIVE'),
+          membershipHistory: Array.isArray(loggedUser.membershipHistory) ? loggedUser.membershipHistory : [],
+          walletBalance: typeof loggedUser.walletBalance === 'number' ? loggedUser.walletBalance : 0,
           emailVerified: true,
           phoneVerified: true,
-          customerId: loggedUser.customerId || loggedUser.registrationId,
-          registrationId: loggedUser.registrationId || loggedUser.customerId,
+          customerId: canonicalCustId || undefined,
+          registrationId: canonicalCustId || undefined,
           address: loggedUser.address,
-          addresses: loggedUser.addresses,
+          addresses: Array.isArray(loggedUser.addresses) ? loggedUser.addresses : [],
+          avatar: loggedUser.avatar || loggedUser.photo || '',
+          gender: loggedUser.gender || 'Other',
+          dob: loggedUser.dob || loggedUser.dateOfBirth || '',
         };
         await useAuthStore.getState().setSession(fullUser, accessToken);
+        // Silently synchronize authoritative multi-device orders in background
+        try {
+          const { useOrderStore } = require('../../store/orderStore');
+          useOrderStore.getState().loadAllOrders(true).catch(() => {});
+        } catch {}
       } else {
         login(trimmedId, 'customer');
       }
@@ -335,24 +356,45 @@ export default function Login() {
       const loggedUser = res?.user || res?.data || null;
       const accessToken = res?.accessToken || res?.token || '';
       if (loggedUser) {
+        const canonicalId = String(
+          loggedUser._id || loggedUser.id || loggedUser.customerId || loggedUser.registrationId || (emailForOtp.includes('@') ? emailForOtp.toLowerCase().trim() : emailForOtp)
+        );
+        const canonicalCustId = String(
+          loggedUser.customerId || loggedUser.registrationId || (canonicalId.startsWith('FIC-CUS-') ? canonicalId : '')
+        );
+        const rawTier = String(loggedUser.membershipTier || loggedUser.membership || '').toLowerCase();
+        let normalizedTier: 'silver' | 'gold' | 'diamond' | undefined = undefined;
+        if (rawTier.includes('diamond')) normalizedTier = 'diamond';
+        else if (rawTier.includes('gold')) normalizedTier = 'gold';
+        else if (rawTier.includes('silver')) normalizedTier = 'silver';
+
         const fullUser = {
-          id: loggedUser.id || loggedUser._id || loggedUser.customerId || `cust_${Date.now()}`,
+          id: canonicalId,
           name: loggedUser.name || 'Connect Member',
           email: loggedUser.email || (emailForOtp.includes('@') ? emailForOtp : ''),
           phone: loggedUser.phone || (!emailForOtp.includes('@') ? emailForOtp : ''),
           role: 'customer' as const,
-          membership: loggedUser.membershipTier || loggedUser.membership,
-          membershipTier: loggedUser.membershipTier,
-          membershipStatus: loggedUser.membershipStatus,
-          walletBalance: loggedUser.walletBalance || 0,
+          membership: normalizedTier,
+          membershipTier: loggedUser.membershipTier || (normalizedTier ? `${normalizedTier.charAt(0).toUpperCase() + normalizedTier.slice(1)} Club` : 'None'),
+          membershipStatus: loggedUser.membershipStatus || (normalizedTier ? 'ACTIVE' : 'INACTIVE'),
+          membershipHistory: Array.isArray(loggedUser.membershipHistory) ? loggedUser.membershipHistory : [],
+          walletBalance: typeof loggedUser.walletBalance === 'number' ? loggedUser.walletBalance : 0,
           emailVerified: true,
           phoneVerified: true,
-          customerId: loggedUser.customerId || loggedUser.registrationId,
-          registrationId: loggedUser.registrationId || loggedUser.customerId,
+          customerId: canonicalCustId || undefined,
+          registrationId: canonicalCustId || undefined,
           address: loggedUser.address,
-          addresses: loggedUser.addresses,
+          addresses: Array.isArray(loggedUser.addresses) ? loggedUser.addresses : [],
+          avatar: loggedUser.avatar || loggedUser.photo || '',
+          gender: loggedUser.gender || 'Other',
+          dob: loggedUser.dob || loggedUser.dateOfBirth || '',
         };
         await useAuthStore.getState().setSession(fullUser, accessToken);
+        // Silently synchronize authoritative multi-device orders in background
+        try {
+          const { useOrderStore } = require('../../store/orderStore');
+          useOrderStore.getState().loadAllOrders(true).catch(() => {});
+        } catch {}
       } else {
         login(emailForOtp.trim(), 'customer');
       }

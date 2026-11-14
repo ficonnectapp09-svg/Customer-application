@@ -225,9 +225,9 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
   const reviewsCount = (item as any).reviews || (item as any).reviewsCount || item.ratingCount || '120';
 
   return (
-    <View style={[styles.card, { backgroundColor: isDark ? '#0D1636' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#F1EAD8' }]}>
+    <View style={[styles.card, { backgroundColor: isDark ? '#0C1930' : '#FFFFFF', borderColor: isDark ? '#8B681F' : '#F1EAD8' }]}>
       {/* Product Image Section */}
-      <View style={[styles.imgContainer, { backgroundColor: isDark ? '#131F48' : '#FAF6ED' }]}>
+      <View style={[styles.imgContainer, { backgroundColor: isDark ? '#071326' : '#FAF6ED' }]}>
         <TouchableOpacity activeOpacity={0.9} onPress={handleCardPress} style={styles.imgTouch}>
           <Image
             source={{ uri: imgError ? fallbackImage : cardImage }}
@@ -244,7 +244,7 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
             </Text>
           </View>
         ) : computedDiscount ? (
-          <View style={styles.discountBadge}>
+          <View style={[styles.discountBadge, { backgroundColor: '#EF4444' }]}>
             <Text style={styles.discountBadgeText}>
               {typeof computedDiscount === 'string' && computedDiscount.includes('OFF')
                 ? `${computedDiscount.replace('OFF', '').trim()} ${t('OFF')}`
@@ -256,15 +256,15 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
         ) : null}
 
         {/* Floating Rating Pill at Bottom-Left of Image */}
-        <View style={styles.ratingPill}>
-          <Icons.Star color="#F59E0B" size={10} fill="#F59E0B" />
-          <Text style={styles.ratingScore}>{item.rating || '4.5'}</Text>
-          <Text style={styles.ratingCount}>({reviewsCount} reviews)</Text>
+        <View style={[styles.ratingPill, { backgroundColor: isDark ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.96)', borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'transparent', borderWidth: isDark ? 0.5 : 0 }]}>
+          <Icons.Star color="#F5B51B" size={10} fill="#F5B51B" />
+          <Text style={[styles.ratingScore, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>{item.rating || '4.5'}</Text>
+          <Text style={[styles.ratingCount, { color: isDark ? '#8E9BB0' : '#64748B' }]}>({reviewsCount} reviews)</Text>
         </View>
 
         {/* Wishlist Heart Chip */}
         <TouchableOpacity
-          style={[styles.wishlistChip, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : '#FFFFFF' }]}
+          style={[styles.wishlistChip, { backgroundColor: isDark ? 'rgba(0, 0, 0, 0.65)' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'transparent', borderWidth: isDark ? 0.5 : 0 }]}
           activeOpacity={0.8}
           onPress={() => {
             if (isGuestUser) {
@@ -281,7 +281,7 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
           }}
         >
           <Icons.Heart
-            color={isWishlisted ? '#EF4444' : isDark ? '#94A3B8' : '#475569'}
+            color={isWishlisted ? '#EF4444' : isDark ? '#FFFFFF' : '#475569'}
             size={14}
             fill={isWishlisted ? '#EF4444' : 'transparent'}
           />
@@ -294,15 +294,15 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
           {t(item.name)}
         </Text>
 
-        <Text style={[styles.subtitle, { color: isDark ? '#CBD5E1' : '#64748B' }]} numberOfLines={1}>
+        <Text style={[styles.subtitle, { color: isDark ? '#8E9BB0' : '#64748B' }]} numberOfLines={1}>
           {formattedSubtitle}
         </Text>
 
         {/* Price Row */}
         <View style={styles.priceRow}>
-          <Text style={[styles.price, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>{item.price}</Text>
+          <Text style={[styles.price, { color: isDark ? '#F5B51B' : '#0F172A' }]}>{item.price}</Text>
           {item.originalPrice ? (
-            <Text style={[styles.strikePrice, { color: isDark ? '#94A3B8' : '#94A3B8' }]}>{item.originalPrice}</Text>
+            <Text style={[styles.strikePrice, { color: isDark ? '#8E9BB0' : '#94A3B8' }]}>{item.originalPrice}</Text>
           ) : null}
         </View>
       </TouchableOpacity>
@@ -312,13 +312,13 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
         {isJob ? (
           /* Jobs: Single Full-Width Primary Button "Apply Now" */
           <TouchableOpacity
-            style={styles.fullPrimaryBtn}
+            style={[styles.fullPrimaryBtn, { backgroundColor: isDark ? '#F5B51B' : '#FF6A00' }]}
             activeOpacity={0.85}
             onPress={handleApplyNow}
             disabled={isProcessing}
           >
-            <Icons.Send color="#FFFFFF" size={12} strokeWidth={2.5} />
-            <Text style={styles.fullPrimaryBtnText}>{t('Apply Now')}</Text>
+            <Icons.Send color={isDark ? '#020B1A' : '#FFFFFF'} size={12} strokeWidth={2.5} />
+            <Text style={[styles.fullPrimaryBtnText, { color: isDark ? '#020B1A' : '#FFFFFF' }]}>{t('Apply Now')}</Text>
           </TouchableOpacity>
         ) : isServiceOrBooking ? (
           /* Services / Travel / Stay: Two Buttons "Add to Cart" + "Book Now" */
@@ -326,7 +326,9 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
             <TouchableOpacity
               style={[
                 styles.outlineBtn,
-                isInCart ? { borderColor: '#16A34A', backgroundColor: isDark ? '#064E3B' : '#DCFCE7' } : { borderColor: '#FF6A00' }
+                isInCart
+                  ? { borderColor: '#22C55E', backgroundColor: isDark ? '#064E3B' : '#DCFCE7' }
+                  : { borderColor: isDark ? '#F5B51B' : '#FF6A00' }
               ]}
               activeOpacity={0.85}
               onPress={handleAddToCart}
@@ -334,25 +336,25 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
             >
               {isInCart ? (
                 <>
-                  <Icons.Check color="#16A34A" size={11} strokeWidth={3} />
-                  <Text style={[styles.outlineBtnText, { color: '#16A34A' }]} numberOfLines={1}>{t('Added')}</Text>
+                  <Icons.Check color="#22C55E" size={11} strokeWidth={3} />
+                  <Text style={[styles.outlineBtnText, { color: '#22C55E' }]} numberOfLines={1}>{t('Added')}</Text>
                 </>
               ) : (
                 <>
-                  <Icons.ShoppingCart color="#FF6A00" size={11} strokeWidth={2.5} />
-                  <Text style={styles.outlineBtnText} numberOfLines={1}>{t('Add to Cart')}</Text>
+                  <Icons.ShoppingCart color={isDark ? '#F5B51B' : '#FF6A00'} size={11} strokeWidth={2.5} />
+                  <Text style={[styles.outlineBtnText, { color: isDark ? '#F5B51B' : '#FF6A00' }]} numberOfLines={1}>{t('Add to Cart')}</Text>
                 </>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.primaryBtn}
+              style={[styles.primaryBtn, { backgroundColor: isDark ? '#F5B51B' : '#FF6A00' }]}
               activeOpacity={0.85}
               onPress={handleBookNow}
               disabled={isProcessing}
             >
-              <Icons.Calendar color="#FFFFFF" size={11} strokeWidth={2.5} />
-              <Text style={styles.primaryBtnText} numberOfLines={1}>{t('Book Now')}</Text>
+              <Icons.Calendar color={isDark ? '#020B1A' : '#FFFFFF'} size={11} strokeWidth={2.5} />
+              <Text style={[styles.primaryBtnText, { color: isDark ? '#020B1A' : '#FFFFFF' }]} numberOfLines={1}>{t('Book Now')}</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -361,7 +363,9 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
             <TouchableOpacity
               style={[
                 styles.outlineBtn,
-                isInCart ? { borderColor: '#16A34A', backgroundColor: isDark ? '#064E3B' : '#DCFCE7' } : { borderColor: '#FF6A00' }
+                isInCart
+                  ? { borderColor: '#22C55E', backgroundColor: isDark ? '#064E3B' : '#DCFCE7' }
+                  : { borderColor: isDark ? '#F5B51B' : '#FF6A00' }
               ]}
               activeOpacity={0.85}
               onPress={handleAddToCart}
@@ -369,25 +373,25 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
             >
               {isInCart ? (
                 <>
-                  <Icons.Check color="#16A34A" size={11} strokeWidth={3} />
-                  <Text style={[styles.outlineBtnText, { color: '#16A34A' }]} numberOfLines={1}>{t('Added')}</Text>
+                  <Icons.Check color="#22C55E" size={11} strokeWidth={3} />
+                  <Text style={[styles.outlineBtnText, { color: '#22C55E' }]} numberOfLines={1}>{t('Added')}</Text>
                 </>
               ) : (
                 <>
-                  <Icons.ShoppingCart color="#FF6A00" size={11} strokeWidth={2.5} />
-                  <Text style={styles.outlineBtnText} numberOfLines={1}>{t('Add to Cart')}</Text>
+                  <Icons.ShoppingCart color={isDark ? '#F5B51B' : '#FF6A00'} size={11} strokeWidth={2.5} />
+                  <Text style={[styles.outlineBtnText, { color: isDark ? '#F5B51B' : '#FF6A00' }]} numberOfLines={1}>{t('Add to Cart')}</Text>
                 </>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.primaryBtn}
+              style={[styles.primaryBtn, { backgroundColor: isDark ? '#F5B51B' : '#FF6A00' }]}
               activeOpacity={0.85}
               onPress={handleBuyNow}
               disabled={isProcessing}
             >
-              <Icons.Zap color="#FFFFFF" size={11} strokeWidth={2.5} fill="#FFFFFF" />
-              <Text style={styles.primaryBtnText} numberOfLines={1}>{t('Buy Now')}</Text>
+              <Icons.Zap color={isDark ? '#020B1A' : '#FFFFFF'} size={11} strokeWidth={2.5} fill={isDark ? '#020B1A' : '#FFFFFF'} />
+              <Text style={[styles.primaryBtnText, { color: isDark ? '#020B1A' : '#FFFFFF' }]} numberOfLines={1}>{t('Buy Now')}</Text>
             </TouchableOpacity>
           </>
         )}

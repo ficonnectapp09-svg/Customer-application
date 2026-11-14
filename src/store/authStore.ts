@@ -350,26 +350,28 @@ export const useAuthStore = create<AuthState>()(
     const uId = state.currentUser.id;
 
     try {
-      let targetParam = '';
-      if (state.currentUser.customerId && String(state.currentUser.customerId).startsWith('FIC-CUS-')) {
-        targetParam = `customerId=${encodeURIComponent(state.currentUser.customerId)}`;
-      } else if (state.currentUser.email) {
-        targetParam = `email=${encodeURIComponent(state.currentUser.email)}`;
-      } else if (state.currentUser.phone) {
-        targetParam = `phone=${encodeURIComponent(state.currentUser.phone)}`;
-      } else {
-        targetParam = `userId=${encodeURIComponent(uId)}`;
+      let response: any = null;
+      // If we have an authentication token, query /auth/customer-profile directly without queryParam
+      // to let the backend resolve identity securely from JWT without triggering IDOR check
+      if (state.token) {
+        response = await apiFetch('/auth/customer-profile', { method: 'GET', skipCache: true }).catch(() => null);
       }
 
-      let response: any = await apiFetch(`/auth/customer-profile?${targetParam}`, {
-        method: 'GET',
-        skipCache: true,
-      });
       if (!response || response.status === 'error' || response.error || response.code === 'FORBIDDEN_IDOR' || response.status === 403) {
-        response = await apiFetch('/auth/customer-profile', { method: 'GET', skipCache: true });
-      }
-      if ((!response || !response.data) && state.currentUser.email) {
-        response = await apiFetch(`/auth/customer-profile?email=${encodeURIComponent(state.currentUser.email)}`, { method: 'GET', skipCache: true }).catch(() => null);
+        let targetParam = '';
+        if (state.currentUser.customerId && String(state.currentUser.customerId).startsWith('FIC-CUS-')) {
+          targetParam = `customerId=${encodeURIComponent(state.currentUser.customerId)}`;
+        } else if (state.currentUser.email) {
+          targetParam = `email=${encodeURIComponent(state.currentUser.email)}`;
+        } else if (state.currentUser.phone) {
+          targetParam = `phone=${encodeURIComponent(state.currentUser.phone)}`;
+        } else {
+          targetParam = `userId=${encodeURIComponent(uId)}`;
+        }
+        response = await apiFetch(`/auth/customer-profile?${targetParam}`, {
+          method: 'GET',
+          skipCache: true,
+        }).catch(() => null);
       }
 
       const membershipRes: any = await apiFetch('/membership/status', { method: 'GET', skipCache: true }).catch(() => null);
@@ -391,14 +393,22 @@ export const useAuthStore = create<AuthState>()(
           } catch {}
         }
 
-        let confirmedTier = profData.membership || state.currentUser?.membership;
-        if (membershipRes && membershipRes.success) {
-          const rawTier = (membershipRes.membershipTier || '').toLowerCase();
-          if (rawTier.includes('diamond')) confirmedTier = 'diamond';
-          else if (rawTier.includes('gold')) confirmedTier = 'gold';
-          else if (rawTier.includes('silver')) confirmedTier = 'silver';
-          else if (rawTier === 'none') confirmedTier = undefined;
-        }
+        // Authoritative membership tier normalization (supports 'Diamond Club', 'Gold Club', 'Silver Club')
+        const rawTierBackend = String(
+          profData.membershipTier ||
+          profData.membership ||
+          membershipRes?.membershipTier ||
+          membershipRes?.tier ||
+          state.currentUser?.membershipTier ||
+          state.currentUser?.membership ||
+          ''
+        ).toLowerCase();
+
+        let confirmedTier: 'silver' | 'gold' | 'diamond' | undefined = undefined;
+        if (rawTierBackend.includes('diamond')) confirmedTier = 'diamond';
+        else if (rawTierBackend.includes('gold')) confirmedTier = 'gold';
+        else if (rawTierBackend.includes('silver')) confirmedTier = 'silver';
+        else if (rawTierBackend === 'none') confirmedTier = undefined;
 
         let normalizedAddr = state.currentUser?.address;
         if (typeof profData.address === 'string' && profData.address) {
@@ -417,19 +427,35 @@ export const useAuthStore = create<AuthState>()(
           };
         }
 
+        const canonicalCustId = String(
+          profData.customerId || profData.registrationId || state.currentUser?.customerId || state.currentUser?.registrationId || ''
+        );
+        const resolvedId = String(profData.id || profData._id || state.currentUser?.id || canonicalCustId || uId);
+
         const mergedUser: User = {
           ...state.currentUser,
           ...profData,
-          customerId: profData.customerId || profData.registrationId || state.currentUser?.customerId,
-          registrationId: profData.registrationId || profData.customerId || state.currentUser?.registrationId,
-          id: profData.id || profData._id || state.currentUser?.id,
+          customerId: canonicalCustId || undefined,
+          registrationId: canonicalCustId || undefined,
+          id: resolvedId,
           address: normalizedAddr,
+          addresses: Array.isArray(profData.addresses) ? profData.addresses : (state.currentUser?.addresses || []),
           membership: confirmedTier,
-          membershipTier: profData.membershipTier || membershipRes?.membershipTier || state.currentUser?.membershipTier,
+          membershipTier: profData.membershipTier || membershipRes?.membershipTier || (confirmedTier ? `${confirmedTier.charAt(0).toUpperCase() + confirmedTier.slice(1)} Club` : state.currentUser?.membershipTier),
+          membershipStatus: profData.membershipStatus || membershipRes?.membershipStatus || (confirmedTier ? 'ACTIVE' : 'INACTIVE'),
           membershipHistory: Array.isArray(profData.membershipHistory) ? profData.membershipHistory : (state.currentUser?.membershipHistory || []),
-          avatar: profData.avatar || state.currentUser?.avatar || '',
+          avatar: profData.avatar || profData.photo || state.currentUser?.avatar || '',
+          gender: profData.gender || state.currentUser?.gender || 'Other',
+          dob: profData.dob || profData.dateOfBirth || state.currentUser?.dob || '',
+          walletBalance: typeof profData.walletBalance === 'number' ? profData.walletBalance : (state.currentUser?.walletBalance || 0),
         };
         set({ currentUser: mergedUser });
+
+        // Trigger multi-device order synchronization right after profile refresh
+        try {
+          useOrderStore.getState().loadAllOrders(true).catch(() => {});
+        } catch {}
+
         if (mergedUser.customerId && (!state.currentUser?.customerId || state.currentUser.customerId !== mergedUser.customerId)) {
           try {
             const socketService = require('../services/socket').default;
@@ -493,12 +519,16 @@ export const useAuthStore = create<AuthState>()(
 
       if (response && (response.status === 'success' || response.success) && (response.data || response.user)) {
         const profData = response.data || response.user;
+        const permanentAvatar = profData.avatar || profData.photo || fields.avatar || updatedUser.avatar;
         const finalUser = {
           ...updatedUser,
           ...profData,
           membership: fields.membership || profData.membership || updatedUser.membership,
-          avatar: profData.avatar || profData.photo || fields.avatar || updatedUser.avatar,
+          avatar: permanentAvatar,
         };
+        if (permanentAvatar && uId) {
+          AsyncStorage.setItem(`connect_user_avatar_${uId}`, permanentAvatar).catch(() => {});
+        }
         clearApiCache('/auth/customer-profile');
         set({ currentUser: finalUser });
         return finalUser;
@@ -522,6 +552,10 @@ export const useAuthStore = create<AuthState>()(
         if (state?.currentUser && !state.currentUser.isGuest) {
           setTimeout(() => {
             useAuthStore.getState().fetchProfile().catch(() => {});
+            try {
+              const { useOrderStore } = require('./orderStore');
+              useOrderStore.getState().loadAllOrders(true).catch(() => {});
+            } catch {}
           }, 100);
         }
       },

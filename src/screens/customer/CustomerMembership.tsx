@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Icons from 'lucide-react-native';
 import Svg, { Rect, Defs, LinearGradient, Stop, Path, Circle } from 'react-native-svg';
@@ -603,7 +603,10 @@ export default function CustomerMembership() {
   const isGuest = !currentUser || currentUser.isGuest || (currentUser.name || '').toLowerCase().includes('guest');
   const displayName = isGuest ? 'Guest User' : currentUser?.name || 'Guest User';
   const rawTier = (currentUser?.membership || currentUser?.membershipTier || '').toLowerCase();
-  const currentMembership = (['silver', 'gold', 'diamond'].includes(rawTier) ? rawTier : null) as 'silver' | 'gold' | 'diamond' | null;
+  let currentMembership: 'silver' | 'gold' | 'diamond' | null = null;
+  if (rawTier.includes('diamond')) currentMembership = 'diamond';
+  else if (rawTier.includes('gold')) currentMembership = 'gold';
+  else if (rawTier.includes('silver')) currentMembership = 'silver';
 
   // Selected plan for Details view (null = List view, TierPlan = Details view)
   const [selectedPlan, setSelectedPlan] = useState<TierPlan | null>(null);
@@ -655,33 +658,45 @@ export default function CustomerMembership() {
     return '12/27';
   };
 
+  const fetchMembershipStatus = useCallback(() => {
+    apiFetch('/membership/status', { skipCache: true })
+      .then((res) => {
+        if (res && res.success) {
+          setServerMembership(res);
+          const rawLiveTier = String(res?.membershipTier || res?.tier || '').toLowerCase();
+          let liveTier: 'silver' | 'gold' | 'diamond' | null = null;
+          if (rawLiveTier.includes('diamond')) liveTier = 'diamond';
+          else if (rawLiveTier.includes('gold')) liveTier = 'gold';
+          else if (rawLiveTier.includes('silver')) liveTier = 'silver';
+
+          if (liveTier) {
+            useAuthStore.getState().updateProfile({
+              membershipTier: res?.membershipTier || `${liveTier.charAt(0).toUpperCase() + liveTier.slice(1)} Club`,
+              membership: liveTier,
+              membershipHistory: Array.isArray(res?.membershipHistory) ? res.membershipHistory : undefined,
+            });
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Auto-refresh membership status whenever user navigates to the Membership tab
+  useFocusEffect(
+    useCallback(() => {
+      fetchMembershipStatus();
+      useAuthStore.getState().fetchProfile().catch(() => {});
+    }, [fetchMembershipStatus])
+  );
+
   // Sync membership status in background from MongoDB Atlas
   useEffect(() => {
     let isMounted = true;
 
-    const fetchStatus = () => {
-      apiFetch('/membership/status', { skipCache: true })
-        .then((res) => {
-          if (!isMounted) return;
-          if (res && res.success) {
-            setServerMembership(res);
-            const liveTier = (res?.membershipTier || res?.tier || '').toLowerCase();
-            if (['silver', 'gold', 'diamond'].includes(liveTier)) {
-              useAuthStore.getState().updateProfile({
-                membershipTier: liveTier,
-                membership: liveTier as 'silver' | 'gold' | 'diamond',
-                membershipHistory: Array.isArray(res?.membershipHistory) ? res.membershipHistory : undefined,
-              });
-            }
-          }
-        })
-        .catch(() => {});
-    };
-
-    fetchStatus();
+    fetchMembershipStatus();
 
     const onMembershipUpdated = () => {
-      fetchStatus();
+      fetchMembershipStatus();
       useAuthStore.getState().fetchProfile().catch(() => {});
     };
     socketService.on('membership_updated', onMembershipUpdated);
@@ -694,7 +709,7 @@ export default function CustomerMembership() {
       socketService.off('membership:updated', onMembershipUpdated);
       socketService.off('customer_profile_updated', onMembershipUpdated);
     };
-  }, []);
+  }, [fetchMembershipStatus]);
 
   // Handle plan purchase / upgrade initiation
   const handleUpgradePlan = (plan: TierPlan) => {
@@ -1211,18 +1226,24 @@ export default function CustomerMembership() {
               </View>
             ) : (
               <TouchableOpacity
-                style={styles.actionCtaBtn}
+                style={[
+                  styles.actionCtaBtn,
+                  {
+                    backgroundColor: isDark ? colors.primary : '#FF6A00',
+                    shadowColor: isDark ? colors.primary : '#FF6A00',
+                  },
+                ]}
                 activeOpacity={0.88}
                 disabled={updating}
                 onPress={() => handleUpgradePlan(selectedPlan)}
               >
                 <View style={styles.actionCtaTextCol}>
-                  <Text style={styles.actionCtaTitle}>
+                  <Text style={[styles.actionCtaTitle, isDark && { color: '#020B1A' }]}>
                     {isSelectedHigher ? `Upgrade to ${selectedPlan.tier}` : `Buy ${selectedPlan.tier}`}
                   </Text>
-                  <Text style={styles.actionCtaFee}>{selectedPlan.price}</Text>
+                  <Text style={[styles.actionCtaFee, isDark && { color: '#020B1A' }]}>{selectedPlan.price}</Text>
                 </View>
-                <Icons.ArrowRight color="#FFFFFF" size={18} strokeWidth={2.5} />
+                <Icons.ArrowRight color={isDark ? '#020B1A' : '#FFFFFF'} size={18} strokeWidth={2.5} />
               </TouchableOpacity>
             )}
           </View>

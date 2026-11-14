@@ -65,18 +65,20 @@ export function dispatchCustomerNotification(payload: CustomerNotificationPayloa
     channelId,
   } = payload;
 
-  // Deduplication guard (prevents duplicate notification delivery within 5 seconds)
-  const key = dedupeKey || `${title}_${body}_${orderId || bookingId || ''}`;
+  // Deduplication guard (prevents duplicate notification delivery across local, socket, and FCM cascades within 60s)
+  const rawTargetId = String(orderId || bookingId || targetParams?.orderId || targetParams?.bookingId || '').trim();
+  const rawStatus = String(targetParams?.status || targetParams?.newStatus || orderType || actionType || 'event').toLowerCase().trim();
+  const key = dedupeKey || (rawTargetId ? `notif_${category || 'order'}_${rawTargetId}_${rawStatus}` : `${title}_${body}`);
   const now = Date.now();
   const lastTime = recentDispatchedNotifications.get(key) || 0;
-  if (now - lastTime < 5000) {
+  if (now - lastTime < 60000) {
     console.log('[NotificationService] Deduplicating notification for key:', key);
     return;
   }
   recentDispatchedNotifications.set(key, now);
 
-  if (recentDispatchedNotifications.size > 50) {
-    const cutoff = now - 30000;
+  if (recentDispatchedNotifications.size > 100) {
+    const cutoff = now - 120000;
     recentDispatchedNotifications.forEach((val, k) => {
       if (val < cutoff) recentDispatchedNotifications.delete(k);
     });

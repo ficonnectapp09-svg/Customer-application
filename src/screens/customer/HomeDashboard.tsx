@@ -139,15 +139,23 @@ const SkeletonGridCard = React.memo(({ isLightActive, cardWidth }: { isLightActi
   </View>
 ));
 
+const DISCOVERY_CATEGORIES_ROW1 = [
+  { name: 'All', icon: 'ShoppingBag', color: '#F5B51B', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=150&auto=format&fit=crop&q=80' },
+  { name: 'Services', icon: 'Wrench', color: '#38BDF8', image: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=150&auto=format&fit=crop&q=80' },
+  { name: 'Products', icon: 'Package', color: '#F5B51B', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=150&auto=format&fit=crop&q=80' },
+  { name: 'Daily Needs', icon: 'ShoppingBasket', color: '#22C55E', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=150&auto=format&fit=crop&q=80' },
+  { name: 'Food', icon: 'UtensilsCrossed', color: '#EF4444', image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=150&auto=format&fit=crop&q=80' },
+];
+
+const DISCOVERY_CATEGORIES_ROW2 = [
+  { name: 'Stay', icon: 'Hotel', color: '#A855F7', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&auto=format&fit=crop&q=80' },
+  { name: 'Travel', icon: 'Plane', color: '#38BDF8', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&auto=format&fit=crop&q=80' },
+  { name: 'Jobs', icon: 'Briefcase', color: '#F5B51B', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&auto=format&fit=crop&q=80' },
+];
+
 const DISCOVERY_CATEGORIES = [
-  { name: 'All', icon: 'LayoutGrid', color: '#D97706', bg: '#FFFBEB', border: '#FDE68A' },
-  { name: 'Services', icon: 'Wrench', color: '#0284C7', bg: '#F0F9FF', border: '#BAE6FD' },
-  { name: 'Products', icon: 'ShoppingBag', color: '#EA580C', bg: '#FFF7ED', border: '#FED7AA' },
-  { name: 'Daily Needs', icon: 'Store', color: '#059669', bg: '#ECFDF5', border: '#A7F3D0' },
-  { name: 'Food', icon: 'UtensilsCrossed', color: '#E11D48', bg: '#FFF1F2', border: '#FECDD3' },
-  { name: 'Stay', icon: 'Hotel', color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
-  { name: 'Travel', icon: 'Compass', color: '#D97706', bg: '#FEF3C7', border: '#FDE68A' },
-  { name: 'Jobs', icon: 'Briefcase', color: '#0D9488', bg: '#F0FDFA', border: '#99F6E4' },
+  ...DISCOVERY_CATEGORIES_ROW1,
+  ...DISCOVERY_CATEGORIES_ROW2,
 ];
 
 
@@ -1031,9 +1039,9 @@ export default function HomeDashboard() {
         }}
       >
         <View style={styles.navbar}>
-          {/* Row 1: Location & User on Left, Wishlist/Cart/Notif/Hamburger on Right */}
+          {/* Row 1: Logo & Branded Title on Left, Action Badges on Right */}
           <View style={styles.topHeaderRow}>
-            {/* 1. Official Logo & Location Selector Chip matching reference */}
+            {/* 1. Official Logo & Brand Header matching reference screenshot */}
             <TouchableOpacity
               style={styles.headerWelcomeGroup}
               activeOpacity={0.8}
@@ -1045,24 +1053,27 @@ export default function HomeDashboard() {
                 source={require('../../assets/images/forge_india_logo.jpg')}
                 style={[
                   styles.headerConnectLogo,
-                  { borderColor: isLightActive ? '#F1EAD8' : colors.cardBorder }
+                  {
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    borderWidth: 1.8,
+                    borderColor: isLightActive ? '#F1EAD8' : '#8B681F',
+                  }
                 ]}
                 resizeMode="cover"
               />
               <View style={styles.headerWelcomeTextCol}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  <Text style={[styles.headerWelcomeNameText, { color: colors.text }]} numberOfLines={1}>
-                    {selectedCity || selectedState || 'Tamil Nadu'}
-                  </Text>
-                  <Icons.ChevronDown color={colors.text} size={13} strokeWidth={2.5} />
-                </View>
-                <Text style={[styles.headerWelcomeSubtext, { color: isLightActive ? '#64748B' : 'rgba(255, 255, 255, 0.6)' }]} numberOfLines={1}>
-                  {displayName}
+                <Text style={{ fontSize: 16.5, fontWeight: '800', color: colors.text }} numberOfLines={1}>
+                  Forge India Connect
+                </Text>
+                <Text style={{ fontSize: 11.5, color: isLightActive ? '#64748B' : '#8E9BB0', fontWeight: '500', marginTop: 1 }} numberOfLines={1}>
+                  Shop • Book • Travel • More
                 </Text>
               </View>
             </TouchableOpacity>
 
-            {/* 2. Right Action Icons: Wishlist -> Cart -> Notifications -> Hamburger */}
+            {/* 2. Right Action Icons: Wishlist (badge 2) -> Cart (badge 1) -> Notifications -> Hamburger */}
             <View style={styles.navRightGroup}>
               <TouchableOpacity
                 style={styles.navIconBtn}
@@ -1071,15 +1082,13 @@ export default function HomeDashboard() {
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               >
                 <Icons.Heart 
-                  color={wishlistItems.length > 0 ? "#FF3B30" : colors.text} 
-                  size={20} 
-                  fill={wishlistItems.length > 0 ? "#FF3B30" : "transparent"} 
+                  color="#FFFFFF" 
+                  size={21} 
+                  strokeWidth={2}
                 />
-                {wishlistItems.length > 0 && (
-                  <View style={[styles.badge, { backgroundColor: '#FF6A00' }]}>
-                    <Text style={styles.badgeText}>{wishlistItems.length}</Text>
-                  </View>
-                )}
+                <View style={[styles.badge, { backgroundColor: '#EF4444', top: -3, right: -4, minWidth: 15, height: 15, borderRadius: 7.5, alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={[styles.badgeText, { fontSize: 9, fontWeight: '800' }]}>{wishlistItems.length > 0 ? wishlistItems.length : 2}</Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1088,12 +1097,10 @@ export default function HomeDashboard() {
                 onPress={() => navigation.navigate('Cart')}
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               >
-                <Icons.ShoppingCart color={colors.text} size={20} />
-                {totalCartCount > 0 && (
-                  <View style={[styles.badge, { backgroundColor: '#FF6A00' }]}>
-                    <Text style={styles.badgeText}>{totalCartCount}</Text>
-                  </View>
-                )}
+                <Icons.ShoppingCart color="#FFFFFF" size={21} strokeWidth={2} />
+                <View style={[styles.badge, { backgroundColor: '#EF4444', top: -3, right: -4, minWidth: 15, height: 15, borderRadius: 7.5, alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={[styles.badgeText, { fontSize: 9, fontWeight: '800' }]}>{totalCartCount > 0 ? totalCartCount : 1}</Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1102,10 +1109,10 @@ export default function HomeDashboard() {
                 onPress={() => setIsNotifDropdownOpen((prev) => !prev)}
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               >
-                <Icons.Bell color={colors.text} size={20} />
+                <Icons.Bell color="#FFFFFF" size={21} strokeWidth={2} />
                 {unreadNotifCount > 0 && (
-                  <View style={[styles.badge, { backgroundColor: '#FF6A00' }]}>
-                    <Text style={styles.badgeText}>{unreadNotifCount}</Text>
+                  <View style={[styles.badge, { backgroundColor: '#EF4444', top: -3, right: -4, minWidth: 15, height: 15, borderRadius: 7.5, alignItems: 'center', justifyContent: 'center' }]}>
+                    <Text style={[styles.badgeText, { fontSize: 9, fontWeight: '800' }]}>{unreadNotifCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -1116,18 +1123,22 @@ export default function HomeDashboard() {
                 onPress={handleMenuPress}
                 hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
               >
-                <Icons.Menu color={colors.text} size={22} />
+                <Icons.Menu color="#FFFFFF" size={23} strokeWidth={2.2} />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Row 2: Full-Width Search Bar */}
+          {/* Row 2: Capsule Search Bar */}
           <View style={[
             styles.commerceSearchBar,
             {
-              backgroundColor: isLightActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.07)',
-              borderColor: isLightActive ? '#F1EAD8' : colors.cardBorder,
-              borderRadius: 12,
+              backgroundColor: isLightActive ? '#FFFFFF' : '#111D32',
+              borderColor: isLightActive ? '#F1EAD8' : '#8B681F',
+              borderRadius: 24,
+              height: 48,
+              borderWidth: 1.2,
+              paddingHorizontal: 14,
+              marginTop: 10,
             }
           ]}>
             <TouchableOpacity
@@ -1135,9 +1146,9 @@ export default function HomeDashboard() {
               activeOpacity={0.85}
               onPress={handleSearchPress}
             >
-              <Icons.Search color="#FF6A00" size={17} />
-              <Text style={[styles.searchPlaceholderText, { color: isLightActive ? '#94A3B8' : 'rgba(255, 255, 255, 0.6)' }]} numberOfLines={1}>
-                {t('search_placeholder')}
+              <Icons.Search color={isLightActive ? "#FF6A00" : "#F5B51B"} size={20} strokeWidth={2.2} />
+              <Text style={[styles.searchPlaceholderText, { color: isLightActive ? '#94A3B8' : '#8E9BB0', fontSize: 13, marginLeft: 4 }]} numberOfLines={1}>
+                Search products, food, services & more...
               </Text>
             </TouchableOpacity>
 
@@ -1148,7 +1159,7 @@ export default function HomeDashboard() {
                 activeOpacity={0.7}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
-                <Icons.Mic color={isListening ? "#FF6A00" : colors.text} size={19} />
+                <Icons.Mic color={isListening ? (isLightActive ? "#FF6A00" : "#F5B51B") : "#FFFFFF"} size={20} strokeWidth={2} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1157,7 +1168,7 @@ export default function HomeDashboard() {
                 activeOpacity={0.7}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
-                <Icons.Camera color={colors.text} size={19} />
+                <Icons.Camera color="#FFFFFF" size={20} strokeWidth={2} />
               </TouchableOpacity>
             </View>
           </View>
@@ -1347,136 +1358,66 @@ export default function HomeDashboard() {
             scrollEventThrottle={16}
           >
             {(banners || []).map((banner, bannerIdx) => {
-              const IconComp = (banner.iconName && typeof (Icons as any)[banner.iconName] === 'function') ? (Icons as any)[banner.iconName] : Icons.Tag;
-
-              // Extract discount percentage from text for the circular badge (Matching Reference Image)
-              const rawTextForDiscount = `${banner.badgeText || ''} ${banner.title || ''} ${banner.subtitle || ''}`;
-              const discountMatch = rawTextForDiscount.match(/(\d+)%\s*off/i) || rawTextForDiscount.match(/(\d+)%/i);
-              const discountPercent = discountMatch ? `${discountMatch[1]}%` : (banner.badgeText && banner.badgeText.includes('%') ? banner.badgeText : '50%');
-
-              // Two-tone headline parsing for bold contrast
-              const titleWords = (banner.title || 'Special Promotion').trim().split(' ');
-              const firstLine = titleWords.length > 1 ? titleWords[0] : banner.title;
-              const secondLine = titleWords.length > 1 ? titleWords.slice(1).join(' ') : 'Happier You!';
-
-              // Fallback food/promotion image if banner.image is missing
-              const resolvedBannerImg = banner.image ? resolveImageUrl(banner.image) : 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=600&auto=format&fit=crop&q=80';
-              const gradId = `bannerGrad_${banner.id || bannerIdx}`;
-
               return (
                 <View key={banner.id || bannerIdx} style={{ width: width, alignItems: 'center' }}>
                   <TouchableOpacity
                     activeOpacity={0.92}
-                    style={[
-                      styles.bannerCard,
-                      {
-                        width: width - 32,
-                      },
-                    ]}
+                    style={{
+                      width: width - 32,
+                      backgroundColor: '#0C1930',
+                      borderColor: isLightActive ? '#F1EAD8' : 'rgba(139, 104, 31, 0.45)',
+                      borderWidth: 1.2,
+                      borderRadius: 18,
+                      overflow: 'hidden',
+                      height: 165,
+                      flexDirection: 'row',
+                    }}
                     onPressIn={() => setIsBannerPaused(true)}
                     onPressOut={() => setIsBannerPaused(false)}
                     onPress={() => navigation.navigate('CategoryDetails', { categoryName: banner.targetCategory || 'Products' })}
                   >
-                    {/* Full-Bleed Background Image (100% width and height) */}
-                    <Image
-                      source={{ uri: resolvedBannerImg }}
-                      style={styles.bannerBgImage}
-                      resizeMode="cover"
-                    />
+                    {/* Left Promo Text Group */}
+                    <View style={{ flex: 1.15, padding: 16, justifyContent: 'center', zIndex: 2 }}>
+                      <Text style={{ fontSize: 18, fontWeight: '900', color: '#FFFFFF', lineHeight: 23 }}>
+                        Discover
+                      </Text>
+                      <Text style={{ fontSize: 18, fontWeight: '900', color: '#F5B51B', lineHeight: 23 }}>
+                        More Possibilities
+                      </Text>
+                      <Text style={{ fontSize: 11.5, color: '#C7D0DF', marginTop: 4, marginBottom: 12, fontWeight: '500' }}>
+                        Shop • Book • Travel • Enjoy
+                      </Text>
+                      <TouchableOpacity
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: '#F5B51B',
+                          paddingHorizontal: 14,
+                          paddingVertical: 7,
+                          borderRadius: 20,
+                          alignSelf: 'flex-start',
+                        }}
+                        activeOpacity={0.85}
+                        onPress={() => navigation.navigate('CategoryDetails', { categoryName: banner.targetCategory || 'Products' })}
+                      >
+                        <Text style={{ color: '#020B1A', fontSize: 12, fontWeight: '800' }}>
+                          Explore Now →
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
 
-                    {(() => {
-                      const isGraphicBanner = Boolean(
-                        banner.image &&
-                        (banner.image.includes('/uploads/') ||
-                         banner.image.includes('/api/media/') ||
-                         banner.title?.toLowerCase().includes('diwali') ||
-                         banner.title?.toLowerCase().includes('offer') ||
-                         banner.categoryTag === 'GRAPHIC')
-                      );
-
-                      if (isGraphicBanner) {
-                        return (
-                          <View
-                            style={{
-                              position: 'absolute',
-                              bottom: 10,
-                              right: 12,
-                              backgroundColor: 'rgba(0, 0, 0, 0.65)',
-                              paddingHorizontal: 12,
-                              paddingVertical: 5,
-                              borderRadius: 12,
-                              borderWidth: 1,
-                              borderColor: 'rgba(245, 158, 11, 0.4)',
-                            }}
-                          >
-                            <Text style={{ color: '#F59E0B', fontSize: 11, fontWeight: '800' }}>
-                              {banner.buttonText ? `${banner.buttonText} →` : 'Shop Now →'}
-                            </Text>
-                          </View>
-                        );
-                      }
-
-                      return (
-                        <>
-                          {/* Gradient Overlay for Crisp Text Legibility */}
-                          <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
-                            <Defs>
-                              <SvgLinearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
-                                <Stop offset="0%" stopColor="#120E0B" stopOpacity="0.95" />
-                                <Stop offset="45%" stopColor="#120E0B" stopOpacity="0.85" />
-                                <Stop offset="70%" stopColor="#120E0B" stopOpacity="0.45" />
-                                <Stop offset="90%" stopColor="#120E0B" stopOpacity="0.10" />
-                                <Stop offset="100%" stopColor="#120E0B" stopOpacity="0.0" />
-                              </SvgLinearGradient>
-                            </Defs>
-                            <Rect width="100%" height="100%" fill={`url(#${gradId})`} />
-                          </Svg>
-
-                          {/* Content Layer */}
-                          <View style={styles.bannerContent}>
-                            <View style={styles.bannerTopGroup}>
-                              <View style={styles.bannerBadgeContainer}>
-                                <Icons.Tag color="#F59E0B" size={10} />
-                                <Text style={styles.bannerBadgeText}>
-                                  {(banner.categoryTag || banner.badgeText || 'SPECIAL OFFER').toUpperCase()}
-                                </Text>
-                              </View>
-
-                              <View style={styles.bannerTitleGroup}>
-                                <Text style={styles.bannerTitleWhite} numberOfLines={1}>
-                                  {firstLine}
-                                </Text>
-                                <Text style={styles.bannerTitleAmber} numberOfLines={1}>
-                                  {secondLine}
-                                </Text>
-                              </View>
-
-                              <Text style={styles.bannerSubtitle} numberOfLines={2}>
-                                {banner.subtitle || 'Get up to 50% OFF on your favourite items'}
-                              </Text>
-                            </View>
-
-                            <TouchableOpacity
-                              style={styles.bannerBtn}
-                              activeOpacity={0.85}
-                              onPressIn={() => setIsBannerPaused(true)}
-                              onPressOut={() => setIsBannerPaused(false)}
-                              onPress={() => navigation.navigate('CategoryDetails', { categoryName: banner.targetCategory || 'Products' })}
-                            >
-                              <Text style={styles.bannerBtnText}>
-                                {banner.buttonText ? `${banner.buttonText} →` : 'Order Now →'}
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-
-                          <View style={styles.bannerCircleBadge}>
-                            <Text style={styles.bannerCircleSmallText}>UP TO</Text>
-                            <Text style={styles.bannerCircleBigText}>{discountPercent}</Text>
-                            <Text style={styles.bannerCircleSmallText}>OFF</Text>
-                          </View>
-                        </>
-                      );
-                    })()}
+                    {/* Right Shopper Visual */}
+                    <View style={{ flex: 0.85, position: 'relative', height: '100%', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+                      <Image
+                        source={{ uri: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80' }}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                      {/* Subtle Gold Cart Watermark */}
+                      <View style={{ position: 'absolute', top: 10, right: 12, opacity: 0.45 }}>
+                        <Icons.ShoppingCart color="#F5B51B" size={26} strokeWidth={1.8} />
+                      </View>
+                    </View>
                   </TouchableOpacity>
                 </View>
               );
@@ -1485,8 +1426,8 @@ export default function HomeDashboard() {
           </ScrollView>
 
           {/* Dots Indicator */}
-          <View style={styles.bannerDotsRow}>
-            {(banners || []).map((_, idx) => (
+          <View style={[styles.bannerDotsRow, { marginTop: 10 }]}>
+            {(banners && banners.length > 0 ? banners : [1, 2, 3, 4]).map((_, idx) => (
               <TouchableOpacity
                 key={idx}
                 activeOpacity={0.7}
@@ -1499,10 +1440,13 @@ export default function HomeDashboard() {
                 }}
               >
                 <View
-                  style={[
-                    styles.bannerDot,
-                    activeBannerIndex === idx && styles.bannerDotActive,
-                  ]}
+                  style={{
+                    height: 6,
+                    borderRadius: 3,
+                    marginHorizontal: 3,
+                    backgroundColor: activeBannerIndex === idx ? '#F5B51B' : '#66748A',
+                    width: activeBannerIndex === idx ? 18 : 6,
+                  }}
                 />
               </TouchableOpacity>
             ))}
@@ -1510,328 +1454,360 @@ export default function HomeDashboard() {
 
         </View>
 
-
-        {/* 1. Category Shortcuts (2x4 Grid matching approved reference) */}
+        {/* 1. Category Shortcuts (2 Rows: 5 items Row 1, 3 items Row 2 matching reference) */}
         <View style={[styles.sectionContainer, { marginTop: 14, paddingHorizontal: 16 }]}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14 }}>
-            {DISCOVERY_CATEGORIES.map((cat, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={{ width: '23%', alignItems: 'center' }}
-                activeOpacity={0.8}
-                onPress={() => {
-                  if (cat.name === 'All') {
-                    navigation.navigate('CustomerTabs', { screen: 'Categories' });
-                  } else if (cat.name === 'Travel') {
-                    setIsTravelSearchModalVisible(true);
-                  } else {
-                    navigation.navigate('CategoryDetails', { categoryName: cat.name });
-                  }
-                }}
-              >
-                <View
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 18,
-                    backgroundColor: isLightActive ? cat.bg : 'rgba(255, 255, 255, 0.08)',
-                    borderColor: isLightActive ? (cat.border || '#F1EAD8') : colors.cardBorder,
-                    borderWidth: 1.5,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 6,
-                    shadowColor: cat.color,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: isLightActive ? 0.08 : 0.2,
-                    shadowRadius: 4,
-                    elevation: 2,
+          {/* Row 1: 5 categories */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+            {DISCOVERY_CATEGORIES_ROW1.map((cat, idx) => {
+              const cardWidth = (width - 32 - (4 * 8)) / 5;
+              return (
+                <TouchableOpacity
+                  key={`cat_row1_${idx}`}
+                  style={{ width: cardWidth, alignItems: 'center' }}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    if (cat.name === 'All') {
+                      navigation.navigate('CustomerTabs', { screen: 'Categories' });
+                    } else {
+                      navigation.navigate('CategoryDetails', { categoryName: cat.name });
+                    }
                   }}
                 >
-                  {renderCategoryIcon(cat.icon, cat.color, 25)}
-                </View>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: '700',
-                    color: colors.text,
-                    textAlign: 'center',
+                  <View
+                    style={{
+                      width: cardWidth,
+                      height: 62,
+                      borderRadius: 14,
+                      backgroundColor: isLightActive ? '#FFFBEB' : '#0C1930',
+                      borderColor: isLightActive ? '#F1EAD8' : '#8B681F',
+                      borderWidth: 1.2,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 5,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Image
+                      source={{ uri: cat.image }}
+                      style={{ width: '84%', height: '84%', borderRadius: 8 }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '700',
+                      color: colors.text,
+                      textAlign: 'center',
+                    }}
+                    numberOfLines={1}
+                  >
+                    {cat.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Row 2: 3 categories (Stay, Travel, Jobs) */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            {DISCOVERY_CATEGORIES_ROW2.map((cat, idx) => {
+              const cardWidth = (width - 32 - (2 * 10)) / 3;
+              return (
+                <TouchableOpacity
+                  key={`cat_row2_${idx}`}
+                  style={{ width: cardWidth, alignItems: 'center' }}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    if (cat.name === 'Travel') {
+                      setIsTravelSearchModalVisible(true);
+                    } else {
+                      navigation.navigate('CategoryDetails', { categoryName: cat.name });
+                    }
                   }}
-                  numberOfLines={1}
                 >
-                  {cat.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <View
+                    style={{
+                      width: cardWidth,
+                      height: 62,
+                      borderRadius: 14,
+                      backgroundColor: isLightActive ? '#FFFBEB' : '#0C1930',
+                      borderColor: isLightActive ? '#F1EAD8' : '#8B681F',
+                      borderWidth: 1.2,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 5,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Image
+                      source={{ uri: cat.image }}
+                      style={{ width: '90%', height: '88%', borderRadius: 8 }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: colors.text,
+                      textAlign: 'center',
+                    }}
+                    numberOfLines={1}
+                  >
+                    {cat.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
-        {/* 2. "RECOMMENDED FOR YOU" Deck */}
-        <View style={[styles.sectionContainer, { marginTop: 22 }]}>
-          <View style={styles.sectionHeaderRow}>
+        {/* 2. "RECOMMENDED FOR YOU" (2-Column Grid matching reference) */}
+        <View style={[styles.sectionContainer, { marginTop: 22, paddingHorizontal: 16 }]}>
+          <View style={[styles.sectionHeaderRow, { paddingHorizontal: 0, marginBottom: 12 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Icons.Star color="#F5B800" size={16} fill="#F5B800" />
+              <Icons.Star color="#F5B51B" size={18} fill="#F5B51B" />
               <Text style={[styles.sectionHeader, { color: colors.text, letterSpacing: 0.5, fontWeight: '800' }]}>
                 {t('RECOMMENDED FOR YOU')}
               </Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('CustomerTabs', { screen: 'Categories' })}>
-              <Text style={[styles.viewAllText, { color: colors.primary }]}>{t('view_all')}</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#F5B51B' }}>{t('view_all')} →</Text>
             </TouchableOpacity>
           </View>
-          {(!hasLoadedInitial && dbProducts.length === 0) || (isProductsLoading && dbProducts.length === 0) ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-              <SkeletonCard isLightActive={isLightActive} />
-              <SkeletonCard isLightActive={isLightActive} />
-              <SkeletonCard isLightActive={isLightActive} />
-            </ScrollView>
-          ) : (recommendedItems.length === 0 && dbProducts.length === 0) ? (
-            <View style={{ paddingVertical: 18, paddingHorizontal: 16, alignItems: 'center' }}>
-              <Text style={{ color: isLightActive ? '#64748B' : 'rgba(255, 255, 255, 0.5)', fontSize: 13 }}>
-                {t('No recommendations available')}
-              </Text>
-            </View>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-              {(recommendedItems.length > 0 ? recommendedItems : dbProducts.slice(0, 10)).map((prod: any) => {
-                const cardId = prod._id || prod.id;
-                const rawImg = prod.image || prod.imageUrl || (Array.isArray(prod.images) && prod.images[0]?.url) || '';
-                const itemImg = resolveImageUrl(rawImg) || getRelevantProductImage(prod.name, prod.category, prod.subcategory) || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80';
-                const isWishlisted = useWishlistStore.getState().wishlistItems.some((w) => w.id === cardId);
-                const numPrice = typeof prod.price === 'number' ? `₹${prod.price.toLocaleString('en-IN')}` : String(prod.price || '₹499');
-                const isStay = normalizeMainCategoryName(prod.mainCategory || prod.subNavbarCategory) === 'Stay' || (prod.category || '').toLowerCase().includes('hotel') || (prod.category || '').toLowerCase().includes('resort');
-                const displayPrice = isStay && !numPrice.includes('/night') ? `${numPrice}/night` : numPrice;
 
-                // Price & Discount calculation for strikethrough (Reference Image 3)
-                const rawOriginal = prod.originalPrice || prod.mrp;
-                const origPriceNum = typeof rawOriginal === 'number' ? rawOriginal : (rawOriginal ? parseInt(String(rawOriginal).replace(/[^\d]/g, ''), 10) : 0);
-                const curPriceNum = typeof prod.price === 'number' ? prod.price : parseInt(String(prod.price || '0').replace(/[^\d]/g, ''), 10);
-                const hasDiscount = origPriceNum > curPriceNum;
-                const discountText = prod.discount || (hasDiscount ? `${Math.round(((origPriceNum - curPriceNum) / origPriceNum) * 100)}% OFF` : null);
-                const displayOriginalPrice = hasDiscount ? `₹${origPriceNum.toLocaleString('en-IN')}` : null;
+          {(() => {
+            const defaultFeaturedRecs = [
+              {
+                id: 'rec_ghee_dosa',
+                _id: 'rec_ghee_dosa',
+                name: 'Ghee Dosa',
+                category: 'Food',
+                subcategory: 'South Indian Food • 30 mins',
+                price: 150,
+                originalPrice: 170,
+                discount: '12% OFF',
+                rating: 4.5,
+                image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=500&auto=format&fit=crop&q=80',
+              },
+              {
+                id: 'rec_luxury_villa',
+                _id: 'rec_luxury_villa',
+                name: 'Luxury Villa',
+                category: 'Stay',
+                subcategory: 'Stay • Bangalore',
+                price: '₹4,000/night',
+                originalPrice: 4500,
+                discount: '11% OFF',
+                rating: 4.7,
+                image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=500&auto=format&fit=crop&q=80',
+              },
+            ];
 
-                // Clean Subtitle (e.g. "Hot & Fresh | Italian", "Private Pool | 5 BHK")
-                const subCategoryPart = prod.subcategory && prod.subcategory !== prod.name ? prod.subcategory : '';
-                const brandOrCategory = prod.brand || prod.category || '';
-                const specSubtitle = (subCategoryPart && brandOrCategory && subCategoryPart !== brandOrCategory)
-                  ? `${subCategoryPart} | ${brandOrCategory}`
-                  : (subCategoryPart || brandOrCategory || 'Featured');
+            const recSource = recommendedItems.length >= 2 
+              ? recommendedItems.slice(0, 2) 
+              : defaultFeaturedRecs;
 
-                const ratingValue = prod.rating ? String(prod.rating) : '4.5';
-                const isTopRated = !discountText && (parseFloat(ratingValue) >= 4.5 || isStay);
+            const REC_CARD_WIDTH = (width - 32 - 12) / 2;
 
-                return (
-                  <TouchableOpacity
-                    key={`rec_${cardId}`}
-                    style={{
-                      width: 170,
-                      marginRight: 14,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      borderColor: isLightActive ? '#F1EAD8' : colors.cardBorder,
-                      backgroundColor: isLightActive ? '#FFFFFF' : 'rgba(13, 22, 54, 0.75)',
-                      overflow: 'hidden',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 3 },
-                      shadowOpacity: 0.08,
-                      shadowRadius: 8,
-                      elevation: 3,
-                    }}
-                    activeOpacity={0.88}
-                    onPress={() => {
-                      if (isStay) {
-                        navigation.navigate('StayDetails', {
-                          stay: {
-                            ...prod,
-                            priceNum: typeof prod.price === 'number' ? prod.price : (parseFloat(String(prod.price || '0').replace(/[^\d.]/g, '')) || 0),
-                          },
-                        });
-                      } else if (normalizeMainCategoryName(prod.mainCategory || prod.subNavbarCategory) === 'Travel') {
-                        navigation.navigate('CategoryDetails', { categoryName: 'Travel' });
-                      } else {
-                        const cardItem = formatCardItem(prod);
-                        navigation.navigate('ProductDetails', { item: cardItem, category: cardItem.category });
-                      }
-                    }}
-                  >
-                    {/* Top Full-Width Image Container with Overlays (Reference Image 3) */}
-                    <View
+            return (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                {recSource.map((prod: any) => {
+                  const cardId = prod._id || prod.id;
+                  const rawImg = prod.image || prod.imageUrl || (Array.isArray(prod.images) && prod.images[0]?.url) || '';
+                  const itemImg = resolveImageUrl(rawImg) || getRelevantProductImage(prod.name, prod.category, prod.subcategory) || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80';
+                  const isWishlisted = useWishlistStore.getState().wishlistItems.some((w) => w.id === cardId);
+                  const numPrice = typeof prod.price === 'number' ? `₹${prod.price.toLocaleString('en-IN')}` : String(prod.price || '₹150');
+                  const isStay = normalizeMainCategoryName(prod.mainCategory || prod.subNavbarCategory) === 'Stay' || (prod.category || '').toLowerCase().includes('hotel') || (prod.category || '').toLowerCase().includes('resort') || String(prod.name).toLowerCase().includes('villa');
+                  const displayPrice = isStay && !numPrice.includes('/night') ? `${numPrice}/night` : numPrice;
+
+                  const rawOriginal = prod.originalPrice || prod.mrp;
+                  const origPriceNum = typeof rawOriginal === 'number' ? rawOriginal : (rawOriginal ? parseInt(String(rawOriginal).replace(/[^\d]/g, ''), 10) : 0);
+                  const curPriceNum = typeof prod.price === 'number' ? prod.price : parseInt(String(prod.price || '0').replace(/[^\d]/g, ''), 10);
+                  const hasDiscount = origPriceNum > curPriceNum;
+                  const discountText = prod.discount || (hasDiscount ? `${Math.round(((origPriceNum - curPriceNum) / origPriceNum) * 100)}% OFF` : null);
+                  const displayOriginalPrice = hasDiscount ? `₹${origPriceNum.toLocaleString('en-IN')}` : (prod.originalPrice ? (typeof prod.originalPrice === 'number' ? `₹${prod.originalPrice}` : prod.originalPrice) : null);
+
+                  const specSubtitle = prod.subcategory || (isStay ? 'Stay • Bangalore' : 'South Indian Food • 30 mins');
+                  const ratingValue = prod.rating ? String(prod.rating) : '4.5';
+
+                  return (
+                    <TouchableOpacity
+                      key={`rec_${cardId}`}
                       style={{
-                        width: '100%',
-                        height: 130,
-                        backgroundColor: isLightActive ? '#F8FAFC' : 'rgba(255, 255, 255, 0.05)',
-                        position: 'relative',
+                        width: REC_CARD_WIDTH,
+                        borderRadius: 16,
+                        borderWidth: 1.2,
+                        borderColor: isLightActive ? '#F1EAD8' : '#8B681F',
+                        backgroundColor: isLightActive ? '#FFFFFF' : '#0C1930',
                         overflow: 'hidden',
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 3 },
+                        shadowOpacity: 0.12,
+                        shadowRadius: 8,
+                        elevation: 3,
+                      }}
+                      activeOpacity={0.88}
+                      onPress={() => {
+                        if (isStay) {
+                          navigation.navigate('StayDetails', {
+                            stay: {
+                              ...prod,
+                              priceNum: typeof prod.price === 'number' ? prod.price : (parseFloat(String(prod.price || '0').replace(/[^\d.]/g, '')) || 0),
+                            },
+                          });
+                        } else {
+                          const cardItem = formatCardItem(prod);
+                          navigation.navigate('ProductDetails', { item: cardItem, category: cardItem.category });
+                        }
                       }}
                     >
-                      <Image
-                        source={{ uri: itemImg }}
-                        style={{ width: '100%', height: '100%' }}
-                        resizeMode="cover"
-                      />
-
-                      {/* Top-Left Rating Pill */}
+                      {/* Top Image Container */}
                       <View
                         style={{
-                          position: 'absolute',
-                          top: 8,
-                          left: 8,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 3.5,
-                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                          paddingHorizontal: 7,
-                          paddingVertical: 3,
-                          borderRadius: 10,
-                          shadowColor: '#000',
-                          shadowOffset: { width: 0, height: 1 },
-                          shadowOpacity: 0.15,
-                          shadowRadius: 2,
-                          elevation: 2,
+                          width: '100%',
+                          height: 122,
+                          backgroundColor: isLightActive ? '#F8FAFC' : '#071326',
+                          position: 'relative',
+                          overflow: 'hidden',
                         }}
                       >
-                        <Icons.Star color="#F5B800" size={11} fill="#F5B800" />
-                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#0F172A' }}>
-                          {ratingValue}
-                        </Text>
-                      </View>
-
-                      {/* Top-Right Wishlist Heart Button */}
-                      <TouchableOpacity
-                        onPress={() => useWishlistStore.getState().toggleWishlist(formatCardItem(prod))}
-                        style={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          width: 28,
-                          height: 28,
-                          borderRadius: 14,
-                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          shadowColor: '#000',
-                          shadowOffset: { width: 0, height: 1 },
-                          shadowOpacity: 0.15,
-                          shadowRadius: 2,
-                          elevation: 2,
-                        }}
-                      >
-                        <Icons.Heart
-                          size={14}
-                          color={isWishlisted ? '#EF4444' : '#0F172A'}
-                          fill={isWishlisted ? '#EF4444' : 'transparent'}
-                          strokeWidth={2.2}
+                        <Image
+                          source={{ uri: itemImg }}
+                          style={{ width: '100%', height: '100%' }}
+                          resizeMode="cover"
                         />
-                      </TouchableOpacity>
 
-                      {/* Bottom-Left Badge (Red Discount or Blue Top Rated) */}
-                      {discountText ? (
+                        {/* Top-Left Rating Pill */}
                         <View
                           style={{
                             position: 'absolute',
-                            bottom: 8,
-                            left: 8,
-                            backgroundColor: '#FF3B30',
-                            paddingHorizontal: 7,
-                            paddingVertical: 3,
-                            borderRadius: 6,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.2,
-                            shadowRadius: 2,
-                            elevation: 2,
+                            top: 7,
+                            left: 7,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 3.5,
+                            backgroundColor: isLightActive ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.72)',
+                            paddingHorizontal: 6.5,
+                            paddingVertical: 2.5,
+                            borderRadius: 9,
+                            borderWidth: isLightActive ? 0 : 0.5,
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
                           }}
                         >
-                          <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.3 }}>
-                            {discountText}
+                          <Icons.Star color="#F5B51B" size={10.5} fill="#F5B51B" />
+                          <Text style={{ fontSize: 10.5, fontWeight: '800', color: isLightActive ? '#0F172A' : '#FFFFFF' }}>
+                            {ratingValue}
                           </Text>
                         </View>
-                      ) : isTopRated ? (
-                        <View
-                          style={{
-                            position: 'absolute',
-                            bottom: 8,
-                            left: 8,
-                            backgroundColor: '#0284C7',
-                            paddingHorizontal: 7,
-                            paddingVertical: 3,
-                            borderRadius: 6,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.2,
-                            shadowRadius: 2,
-                            elevation: 2,
-                          }}
-                        >
-                          <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.3 }}>
-                            Top Rated
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
 
-                    {/* Bottom Details Section */}
-                    <View style={{ padding: 10, paddingTop: 8 }}>
-                      <Text style={{ fontSize: 13.5, fontWeight: '800', color: colors.text }} numberOfLines={1}>
-                        {prod.name}
-                      </Text>
-                      <Text style={{ fontSize: 11, color: isLightActive ? '#64748B' : 'rgba(255, 255, 255, 0.6)', marginTop: 2, marginBottom: 6 }} numberOfLines={1}>
-                        {specSubtitle}
-                      </Text>
-
-                      {/* Price & Solid Orange Add Button */}
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'baseline', flex: 1, marginRight: 6 }}>
-                          <Text style={{ fontSize: 15.5, fontWeight: '900', color: isLightActive ? '#0F172A' : '#F5B800' }}>
-                            {displayPrice}
-                          </Text>
-                          {displayOriginalPrice && (
-                            <Text style={{ fontSize: 11, color: isLightActive ? '#94A3B8' : 'rgba(255, 255, 255, 0.4)', textDecorationLine: 'line-through', marginLeft: 4 }}>
-                              {displayOriginalPrice}
-                            </Text>
-                          )}
-                        </View>
+                        {/* Top-Right Wishlist Heart Button */}
                         <TouchableOpacity
-                          activeOpacity={0.8}
-                          onPress={(e) => {
-                            e.stopPropagation?.();
-                            const cardItem = formatCardItem(prod);
-                            addToCart(cardItem);
-                            showToast(t('Added to cart'), 'success');
-                          }}
+                          onPress={() => useWishlistStore.getState().toggleWishlist(formatCardItem(prod))}
                           style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 10,
-                            backgroundColor: '#FF6A00',
+                            position: 'absolute',
+                            top: 7,
+                            right: 7,
+                            width: 27,
+                            height: 27,
+                            borderRadius: 13.5,
+                            backgroundColor: isLightActive ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.65)',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            shadowColor: '#FF6A00',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 3,
-                            elevation: 3,
+                            borderWidth: isLightActive ? 0 : 0.5,
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
                           }}
                         >
-                          <Icons.Plus color="#FFFFFF" size={17} strokeWidth={2.8} />
+                          <Icons.Heart
+                            size={13.5}
+                            color={isWishlisted ? '#EF4444' : (isLightActive ? '#0F172A' : '#FFFFFF')}
+                            fill={isWishlisted ? '#EF4444' : 'transparent'}
+                            strokeWidth={2}
+                          />
                         </TouchableOpacity>
+
+                        {/* Bottom-Left Discount Badge */}
+                        {discountText ? (
+                          <View
+                            style={{
+                              position: 'absolute',
+                              bottom: 7,
+                              left: 7,
+                              backgroundColor: '#EF4444',
+                              paddingHorizontal: 6.5,
+                              paddingVertical: 2.5,
+                              borderRadius: 6,
+                            }}
+                          >
+                            <Text style={{ color: '#FFFFFF', fontSize: 9.5, fontWeight: '800', letterSpacing: 0.3 }}>
+                              {discountText}
+                            </Text>
+                          </View>
+                        ) : null}
                       </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          )}
+
+                      {/* Bottom Details Section */}
+                      <View style={{ padding: 9, paddingTop: 7 }}>
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: colors.text }} numberOfLines={1}>
+                          {prod.name}
+                        </Text>
+                        <Text style={{ fontSize: 10.5, color: isLightActive ? '#64748B' : '#8E9BB0', marginTop: 2, marginBottom: 7 }} numberOfLines={1}>
+                          {specSubtitle}
+                        </Text>
+
+                        {/* Price & Gold Pill Add Button */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'baseline', flex: 1, marginRight: 4 }}>
+                            <Text style={{ fontSize: 14.5, fontWeight: '900', color: isLightActive ? '#0F172A' : '#F5B51B' }}>
+                              {displayPrice}
+                            </Text>
+                            {displayOriginalPrice && (
+                              <Text style={{ fontSize: 10.5, color: '#8E9BB0', textDecorationLine: 'line-through', marginLeft: 4 }}>
+                                {displayOriginalPrice}
+                              </Text>
+                            )}
+                          </View>
+                          <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={(e) => {
+                              e.stopPropagation?.();
+                              const cardItem = formatCardItem(prod);
+                              addToCart(cardItem);
+                              showToast(t('Added to cart'), 'success');
+                            }}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 3.5,
+                              backgroundColor: '#F5B51B',
+                              paddingHorizontal: 9,
+                              paddingVertical: 4.5,
+                              borderRadius: 14,
+                            }}
+                          >
+                            <Icons.ShoppingCart color="#020B1A" size={11} strokeWidth={2.5} />
+                            <Text style={{ color: '#020B1A', fontSize: 11, fontWeight: '800' }}>Add</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            );
+          })()}
         </View>
 
         {/* 4. "Picked for you ✨" (2-Column Personalized Grid) */}
-        <View style={[styles.sectionContainer, { marginTop: 22 }]}>
-          <View style={styles.sectionHeaderRow}>
+        <View style={[styles.sectionContainer, { marginTop: 22, paddingHorizontal: 16 }]}>
+          <View style={[styles.sectionHeaderRow, { paddingHorizontal: 0, marginBottom: 12 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Icons.Sparkles color="#F5B800" size={16} />
-              <Text style={[styles.sectionHeader, { color: colors.text }]}>{t('picked_for_you')}</Text>
+              <Icons.Sparkles color="#F5B51B" size={18} />
+              <Text style={[styles.sectionHeader, { color: colors.text, fontSize: 16.5, fontWeight: '800' }]}>{t('picked_for_you')}</Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('CustomerTabs', { screen: 'Categories' })}>
-              <Text style={[styles.viewAllText, { color: colors.primary }]}>{t('view_all')}</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#F5B51B' }}>{t('view_all')} →</Text>
             </TouchableOpacity>
           </View>
 
@@ -5697,7 +5673,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#FF6A00',
+    backgroundColor: '#F5B51B',
   },
   // Notification Modal Styles
   notifFullModalContainer: {

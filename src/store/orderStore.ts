@@ -382,7 +382,7 @@ export const useOrderStore = create<OrderState>()(
 
       loadAllOrders: async (force = false) => {
         const now = Date.now();
-        if (!force && (_isFetchingOrders || (now - _lastOrderFetchTime < 4000 && get().allOrders.length > 0))) {
+        if (!force && (_isFetchingOrders || (now - _lastOrderFetchTime < 3000 && get().allOrders.length > 0))) {
           return;
         }
 
@@ -393,22 +393,34 @@ export const useOrderStore = create<OrderState>()(
           let cPhone = '';
           try {
             const { useAuthStore, resolveFreshCustomerId } = require('./authStore');
-            let curUser = useAuthStore.getState().currentUser;
-            cId = await resolveFreshCustomerId().catch(() => '');
-            if (!cId) {
-              cId = curUser?.customerId || curUser?.registrationId || '';
-            }
-            if (!cId && curUser?.id && !curUser.id.startsWith('customer_')) {
-              cId = curUser.id;
-            }
+            const authState = useAuthStore.getState();
+            const curUser = authState.currentUser;
+            const hasToken = Boolean(authState.token);
+
+            cId = curUser?.customerId || curUser?.registrationId || '';
             cPhone = (curUser?.phone || '').replace(/[^\d]/g, '').slice(-10);
-            if (cId && !curUser?.isGuest) {
-              queryParam = `?customerId=${encodeURIComponent(cId)}`;
-            } else if (curUser?.email && !curUser?.isGuest) {
-              queryParam = `?email=${encodeURIComponent(curUser.email)}`;
+
+            // If authenticated with Bearer token, the backend automatically resolves all
+            // user identities (customerId, registrationId, _id, id, email, phone) without needing queryParam.
+            // Only attach queryParam if unauthenticated with token.
+            if (!hasToken) {
+              if (cId && String(cId).startsWith('FIC-CUS-')) {
+                queryParam = `?customerId=${encodeURIComponent(cId)}`;
+              } else if (curUser?.email && !curUser?.isGuest) {
+                queryParam = `?email=${encodeURIComponent(curUser.email)}`;
+              } else if (cPhone && cPhone.length === 10) {
+                queryParam = `?phone=${encodeURIComponent(cPhone)}`;
+              }
             }
           } catch {}
-          const res = await apiFetch(`/orders${queryParam}`, { skipCache: true });
+
+          let res: any = await apiFetch(`/orders${queryParam}`, { skipCache: true });
+
+          // If queryParam triggered 403 or 401, retry directly with clean /orders
+          if ((!res || res.status === 'error' || res.code === 'FORBIDDEN_IDOR' || res.statusCode === 403 || res.statusCode === 401) && queryParam) {
+            res = await apiFetch('/orders', { skipCache: true }).catch(() => null);
+          }
+
           _lastOrderFetchTime = Date.now();
           if (res && res.status === 'success' && Array.isArray(res.data)) {
             const current = get().allOrders || [];
@@ -443,7 +455,6 @@ export const useOrderStore = create<OrderState>()(
           }
         } catch (err) {
           console.warn('Failed to load all orders from API, using offline persistent state:', err);
-          
         } finally {
           _isFetchingOrders = false;
         }
@@ -539,13 +550,27 @@ export const useOrderStore = create<OrderState>()(
       ),
     }));
 
-    // 2. Background sync to backend
-    apiFetch(`/orders/${orderId}/cancel`, {
-      method: 'POST',
-      body: JSON.stringify({ reason: reason || 'Customer requested cancellation' }),
-    }).catch((err) => {
-      console.warn('Background cancel order notice:', err);
-    });
+    // 2. Background sync to backend via standard status update endpoint
+    const cancelBody = { status: 'Cancelled', reason: reason || 'Customer requested cancellation' };
+    apiFetch(`/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: cancelBody,
+    })
+      .then(() => {
+        // Clear order cache and reload orders
+        const { clearApiCache } = require('../services/api');
+        clearApiCache('/orders');
+        get().loadAllOrders(true).catch(() => {});
+      })
+      .catch(() => {
+        // Fallback retry via cancel alias
+        apiFetch(`/orders/${orderId}/cancel`, {
+          method: 'POST',
+          body: cancelBody,
+        }).catch((err) => {
+          console.warn('Background cancel order notice:', err);
+        });
+      });
 
     return true;
   },

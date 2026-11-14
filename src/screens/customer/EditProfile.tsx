@@ -23,7 +23,7 @@ import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-nat
 import RNFS from 'react-native-fs';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
-import { apiFetch } from '../../services/api';
+import { apiFetch, resolveImageUrl } from '../../services/api';
 import { useTranslation } from '../../store/languageStore';
 import { useToastStore } from '../../store/toastStore';
 
@@ -391,7 +391,7 @@ export default function EditProfile() {
     setSaveLoading(true);
     setBannerError(null);
 
-    // Ensure avatar is converted to base64 data URI so backend uploads to AWS S3
+    // Ensure avatar is converted to base64 data URI so backend uploads to Cloudinary permanent storage
     let avatarPayload = avatar;
     if (avatar && avatar !== initialSnapshot?.avatar) {
       if (selectedPhotoBase64) {
@@ -515,7 +515,7 @@ export default function EditProfile() {
                 onPress={() => setActionSheetVisible(true)}
               >
                 {avatar ? (
-                  <Image source={{ uri: avatar }} style={styles.avatarImage} />
+                  <Image source={{ uri: resolveImageUrl(avatar) }} style={styles.avatarImage} />
                 ) : (
                   <View style={[styles.avatarPlaceholder, { backgroundColor: isLight ? '#0F172A' : '#1E293B' }]}>
                     <Text style={styles.avatarInitial}>

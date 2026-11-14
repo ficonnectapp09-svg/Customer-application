@@ -174,8 +174,8 @@ export default function CustomerCart() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={['#FF6A00']}
-                tintColor={colors.primary || '#FF6A00'}
+                colors={[colors.primary]}
+                tintColor={colors.primary}
               />
             }
           >
@@ -295,8 +295,8 @@ export default function CustomerCart() {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(255, 106, 0, 0.12)', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icons.Tag color="#FF6A00" size={17} />
+                <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: isLight ? 'rgba(255, 106, 0, 0.12)' : 'rgba(245, 181, 27, 0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icons.Tag color={isLight ? '#FF6A00' : colors.primary} size={17} />
                 </View>
                 <View>
                   <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>CONNECTGOLD</Text>
@@ -305,16 +305,16 @@ export default function CustomerCart() {
               </View>
               <TouchableOpacity
                 style={{
-                  backgroundColor: '#FFF3E8',
+                  backgroundColor: isLight ? '#FFF3E8' : 'rgba(245, 181, 27, 0.15)',
                   borderWidth: 1,
-                  borderColor: '#FF6A00',
+                  borderColor: isLight ? '#FF6A00' : colors.primary,
                   paddingHorizontal: 12,
                   paddingVertical: 5,
                   borderRadius: 8,
                 }}
                 onPress={() => showToast('Coupon CONNECTGOLD applied!', 'success')}
               >
-                <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#FF6A00' }}>APPLY</Text>
+                <Text style={{ fontSize: 11.5, fontWeight: '800', color: isLight ? '#FF6A00' : colors.primary }}>APPLY</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -352,17 +352,23 @@ export default function CustomerCart() {
                 <Text style={[styles.totalAmountLabel, { color: isLight ? '#64748B' : '#94A3B8' }]}>
                   {t('Grand Total')}
                 </Text>
-                <Text style={[styles.totalAmountValue, { color: isLight ? '#0F172A' : '#F5B800' }]}>
+                <Text style={[styles.totalAmountValue, { color: isLight ? '#0F172A' : colors.primary }]}>
                   ₹{calculateTotal().toLocaleString('en-IN')}
                 </Text>
               </View>
 
               <TouchableOpacity
-                style={styles.checkoutBtn}
+                style={[
+                  styles.checkoutBtn,
+                  {
+                    backgroundColor: isLight ? '#FF6A00' : colors.primary,
+                    shadowColor: isLight ? '#FF6A00' : colors.primary,
+                  },
+                ]}
                 activeOpacity={0.85}
                 onPress={handleProceedToCheckout}
               >
-                <Text style={styles.checkoutBtnText}>{t('Proceed to Checkout')}</Text>
+                <Text style={[styles.checkoutBtnText, { color: isLight ? '#FFFFFF' : '#020B1A' }]}>{t('Proceed to Checkout')}</Text>
                 <Icons.ArrowRight color="#FFFFFF" size={16} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>

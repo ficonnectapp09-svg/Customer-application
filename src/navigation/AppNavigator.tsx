@@ -236,18 +236,19 @@ function CustomerTabNavigator() {
         tabBarButton: (props) => <FastTabButton {...props} />,
         tabBarStyle: {
           backgroundColor: colors.tabBarBg,
-          borderTopColor: colors.tabBarBorder,
-          height: 62,
-          paddingBottom: 8,
+          borderTopColor: isDark ? colors.tabBarBorder : '#F1EAD8',
+          borderTopWidth: 1,
+          height: 64,
+          paddingBottom: 6,
           paddingTop: 6,
-          elevation: 8,
-          shadowColor: isDark ? '#000' : '#888',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.08,
-          shadowRadius: 4,
+          elevation: 12,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: isDark ? 0.4 : 0.08,
+          shadowRadius: 6,
         },
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.subtext,
+        tabBarInactiveTintColor: isDark ? '#FFFFFF' : colors.subtext,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: 'bold',
@@ -259,8 +260,13 @@ function CustomerTabNavigator() {
         component={HomeStackNavigator}
         options={{
           tabBarIcon: renderHomeIcon,
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: 'bold' }}>{t('home')}</Text>
+          tabBarLabel: ({ focused, color }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ color, fontSize: 11, fontWeight: focused ? '700' : '500' }}>{t('home')}</Text>
+              {focused && (
+                <View style={{ width: 22, height: 2.5, borderRadius: 2, backgroundColor: colors.primary, marginTop: 2 }} />
+              )}
+            </View>
           ),
         }}
       />
@@ -269,8 +275,13 @@ function CustomerTabNavigator() {
         component={CategoriesStackNavigator}
         options={{
           tabBarIcon: renderCategoriesIcon,
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: 'bold' }}>{t('categories')}</Text>
+          tabBarLabel: ({ focused, color }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ color, fontSize: 11, fontWeight: focused ? '700' : '500' }}>{t('categories')}</Text>
+              {focused && (
+                <View style={{ width: 22, height: 2.5, borderRadius: 2, backgroundColor: colors.primary, marginTop: 2 }} />
+              )}
+            </View>
           ),
         }}
       />
@@ -279,8 +290,13 @@ function CustomerTabNavigator() {
         component={MemoizedCustomerOrders}
         options={{
           tabBarIcon: renderOrdersIcon,
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: 'bold' }}>{t('orders')}</Text>
+          tabBarLabel: ({ focused, color }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ color, fontSize: 11, fontWeight: focused ? '700' : '500' }}>{t('orders')}</Text>
+              {focused && (
+                <View style={{ width: 22, height: 2.5, borderRadius: 2, backgroundColor: colors.primary, marginTop: 2 }} />
+              )}
+            </View>
           ),
         }}
       />
@@ -289,8 +305,13 @@ function CustomerTabNavigator() {
         component={MemoizedCustomerMembership}
         options={{
           tabBarIcon: renderMembershipIcon,
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: 'bold' }}>{t('membership')}</Text>
+          tabBarLabel: ({ focused, color }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ color, fontSize: 11, fontWeight: focused ? '700' : '500' }}>{t('membership')}</Text>
+              {focused && (
+                <View style={{ width: 22, height: 2.5, borderRadius: 2, backgroundColor: colors.primary, marginTop: 2 }} />
+              )}
+            </View>
           ),
         }}
       />
@@ -299,8 +320,13 @@ function CustomerTabNavigator() {
         component={MemoizedCustomerProfile}
         options={{
           tabBarIcon: renderProfileIcon,
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: 'bold' }}>{t('profile')}</Text>
+          tabBarLabel: ({ focused, color }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ color, fontSize: 11, fontWeight: focused ? '700' : '500' }}>{t('profile')}</Text>
+              {focused && (
+                <View style={{ width: 22, height: 2.5, borderRadius: 2, backgroundColor: colors.primary, marginTop: 2 }} />
+              )}
+            </View>
           ),
         }}
         listeners={({ navigation }) => ({

@@ -377,6 +377,16 @@ class SocketServiceClient {
           clearApiCache('/orders');
           useOrderStore.getState().loadAllOrders(true).catch(() => {});
 
+          // Deduplication: prevent processing duplicate notifications for the same order within 30s
+          const orderIdStr = String(data.id || data.order_number || data._id || '');
+          const dedupeKey = `new_order_${orderIdStr}`;
+          const lastProcessed = this.processedUpdates.get(dedupeKey) || 0;
+          if (Date.now() - lastProcessed < 30000) {
+            console.log(`[Socket Client]: Ignoring duplicate new order notification for ${dedupeKey}`);
+            return;
+          }
+          this.processedUpdates.set(dedupeKey, Date.now());
+
           const rawCategory = String(data.category || data.type || (data.items && data.items[0]?.category) || '').toLowerCase();
           const isJob = rawCategory.includes('job');
           const isTravel = rawCategory.includes('travel') || rawCategory.includes('bus');
@@ -421,6 +431,7 @@ class SocketServiceClient {
             orderType: actionType,
             orderId: data.id || data.order_number,
             bookingId: isBooking ? (data.id || data.order_number) : undefined,
+            dedupeKey: `order_${orderIdStr}_placed`,
             targetScreen: 'Orders',
             targetParams: {
               activeTab: isBooking ? 'my bookings' : isJob ? 'job applied' : 'my orders',

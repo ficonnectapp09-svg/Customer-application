@@ -3962,12 +3962,12 @@ export default function CustomerOrders() {
                   styles.categoryTabBtn,
                   {
                     backgroundColor: isSelected
-                      ? '#FF6A00'
+                      ? (isLight ? '#FF6A00' : colors.primary)
                       : isLight
                       ? '#FFFFFF'
                       : 'rgba(255, 255, 255, 0.06)',
                     borderColor: isSelected
-                      ? '#FF6A00'
+                      ? (isLight ? '#FF6A00' : colors.primary)
                       : isLight
                       ? '#F1EAD8'
                       : colors.cardBorder,
@@ -3979,7 +3979,7 @@ export default function CustomerOrders() {
                 <Text
                   style={[
                     styles.categoryTabText,
-                    { color: isSelected ? '#FFFFFF' : colors.text },
+                    { color: isSelected ? (isLight ? '#FFFFFF' : '#020B1A') : colors.text },
                     isSelected && { fontWeight: '800' },
                   ]}
                 >
@@ -3990,7 +3990,7 @@ export default function CustomerOrders() {
                     styles.categoryCountBadge,
                     {
                       backgroundColor: isSelected
-                        ? 'rgba(255, 255, 255, 0.25)'
+                        ? (isLight ? 'rgba(255, 255, 255, 0.25)' : 'rgba(2, 11, 26, 0.25)')
                         : isLight
                         ? '#FFF3E8'
                         : 'rgba(255, 255, 255, 0.12)',
@@ -4002,10 +4002,10 @@ export default function CustomerOrders() {
                       styles.categoryCountText,
                       {
                         color: isSelected
-                          ? '#FFFFFF'
+                          ? (isLight ? '#FFFFFF' : '#020B1A')
                           : isLight
                           ? '#FF6A00'
-                          : '#F5B800',
+                          : colors.primary,
                       },
                     ]}
                   >

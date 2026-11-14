@@ -25,10 +25,11 @@ import { useWishlistStore } from '../../store/wishlistStore';
 import { useActivityStore } from '../../store/activityStore';
 import { useThemeStore } from '../../store/themeStore';
 import { useTranslation, LANGUAGES_LIST } from '../../store/languageStore';
+import { resolveImageUrl } from '../../services/api';
 
 const getMembershipBadgeConfig = (membershipStr?: string, isDark: boolean = false) => {
-  const tier = (membershipStr || 'gold').toLowerCase().trim();
-  if (tier === 'diamond') {
+  const tier = (membershipStr || '').toLowerCase().trim();
+  if (tier.includes('diamond')) {
     return {
       label: 'DIAMOND MEMBER',
       bg: isDark ? 'rgba(126, 34, 206, 0.3)' : '#F3E8FF',
@@ -36,6 +37,16 @@ const getMembershipBadgeConfig = (membershipStr?: string, isDark: boolean = fals
       text: isDark ? '#E9D5FF' : '#7E22CE',
       iconColor: isDark ? '#C084FC' : '#A855F7',
       IconComp: Icons.Sparkles,
+    };
+  }
+  if (tier.includes('silver')) {
+    return {
+      label: 'SILVER MEMBER',
+      bg: isDark ? 'rgba(148, 163, 184, 0.25)' : '#F1F5F9',
+      border: isDark ? '#94A3B8' : '#64748B',
+      text: isDark ? '#E2E8F0' : '#475569',
+      iconColor: '#94A3B8',
+      IconComp: Icons.Award,
     };
   }
   return {
@@ -97,6 +108,12 @@ export default function CustomerProfile() {
       }
     });
   }, [fetchProfile]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfileData();
+    }, [loadProfileData])
+  );
 
   useEffect(() => {
     loadProfileData();
@@ -175,15 +192,21 @@ export default function CustomerProfile() {
         maxHeight: 600,
         cameraType: 'front',
         saveToPhotos: false,
+        includeBase64: true,
       },
       async (response: ImagePickerResponse) => {
         if (response.didCancel || !response.assets || response.assets.length === 0) return;
-        const newUri = response.assets[0].uri;
-        if (newUri) {
+        const asset = response.assets[0];
+        let avatarData = asset.uri || '';
+        if (asset.base64) {
+          const mime = asset.type || 'image/jpeg';
+          avatarData = `data:${mime};base64,${asset.base64}`;
+        }
+        if (avatarData) {
           setIsUploadingPhoto(true);
           setAvatarError(false);
           try {
-            await updateProfile({ avatar: newUri });
+            await updateProfile({ avatar: avatarData });
           } catch (err) {
             console.warn('Failed to update avatar photo:', err);
           } finally {
@@ -217,15 +240,21 @@ export default function CustomerProfile() {
         maxWidth: 600,
         maxHeight: 600,
         selectionLimit: 1,
+        includeBase64: true,
       },
       async (response: ImagePickerResponse) => {
         if (response.didCancel || !response.assets || response.assets.length === 0) return;
-        const newUri = response.assets[0].uri;
-        if (newUri) {
+        const asset = response.assets[0];
+        let avatarData = asset.uri || '';
+        if (asset.base64) {
+          const mime = asset.type || 'image/jpeg';
+          avatarData = `data:${mime};base64,${asset.base64}`;
+        }
+        if (avatarData) {
           setIsUploadingPhoto(true);
           setAvatarError(false);
           try {
-            await updateProfile({ avatar: newUri });
+            await updateProfile({ avatar: avatarData });
           } catch (err) {
             console.warn('Failed to update avatar photo from gallery:', err);
           } finally {
@@ -462,8 +491,8 @@ export default function CustomerProfile() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[colors.primary || '#FF6A00']}
-              tintColor={colors.primary || '#FF6A00'}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         >
@@ -472,8 +501,8 @@ export default function CustomerProfile() {
             style={[
               styles.profileCard,
               {
-                backgroundColor: isLight ? '#FFFFFF' : 'rgba(13, 22, 54, 0.65)',
-                borderColor: isLight ? '#F1EAD8' : colors.cardBorder,
+                backgroundColor: isLight ? '#FFFFFF' : colors.cardBg,
+                borderColor: isLight ? '#F1EAD8' : colors.goldBorder,
               },
             ]}
             activeOpacity={0.88}
@@ -487,7 +516,7 @@ export default function CustomerProfile() {
             >
               {currentUser?.avatar && !avatarError ? (
                 <Image
-                  source={{ uri: currentUser.avatar }}
+                  source={{ uri: resolveImageUrl(currentUser.avatar) }}
                   style={styles.avatarImage}
                   resizeMode="cover"
                   onError={() => setAvatarError(true)}

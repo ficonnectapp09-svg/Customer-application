@@ -89,8 +89,8 @@ export default function WishlistScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[colors.primary || '#FF6A00']}
-              tintColor={colors.primary || '#FF6A00'}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         >
@@ -102,11 +102,11 @@ export default function WishlistScreen() {
             Save items that you like and want to buy later by tapping the heart icon.
           </Text>
           <TouchableOpacity
-            style={styles.exploreBtn}
+            style={[styles.exploreBtn, { backgroundColor: colors.primary }]}
             activeOpacity={0.85}
             onPress={() => navigation.navigate('CustomerTabs', { screen: 'Categories' })}
           >
-            <Text style={styles.exploreBtnText}>Explore Products</Text>
+            <Text style={[styles.exploreBtnText, { color: '#020B1A' }]}>Explore Products</Text>
           </TouchableOpacity>
         </ScrollView>
       ) : (
@@ -118,8 +118,8 @@ export default function WishlistScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[colors.primary || '#FF6A00']}
-              tintColor={colors.primary || '#FF6A00'}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         >

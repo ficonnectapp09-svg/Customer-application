@@ -83,6 +83,17 @@ export default function App() {
             syncCustomerSession(curUser, curToken);
           }
         } catch (e) {}
+      } else if (nextState === 'active') {
+        try {
+          const curUser = useAuthStore.getState().currentUser;
+          if (curUser && !curUser.isGuest) {
+            useAuthStore.getState().fetchProfile().catch(() => {});
+            const { useOrderStore } = require('./src/store/orderStore');
+            useOrderStore.getState().loadAllOrders(true).catch(() => {});
+            const { useNotificationStore } = require('./src/store/notificationStore');
+            useNotificationStore.getState().fetchNotifications().catch(() => {});
+          }
+        } catch (e) {}
       }
     });
 

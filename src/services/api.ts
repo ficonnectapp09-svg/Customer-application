@@ -61,7 +61,16 @@ export function resolveImageUrl(url: any): string {
   if (!url || typeof url !== 'string') return '';
   const trimmed = url.trim();
   if (trimmed.startsWith('data:image')) return trimmed;
+  // Permanent Cloudinary CDN URLs - fully preserved
+  if (trimmed.startsWith('https://res.cloudinary.com/')) return trimmed;
+  // Standard HTTPS/HTTP URLs - fully preserved
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  // Raw storage object keys (e.g. products/xxx.jpg, customers/xxx.jpg) routed through backend durable media resolver
+  if (/^[a-zA-Z0-9_\-]+\/[a-zA-Z0-9_\-\.]+\.(jpg|jpeg|png|webp|gif|avif|pdf|svg)$/i.test(trimmed)) {
+    const origin = (activeBackendUrl || BACKEND_URL || '').replace(/\/api\/?$/, '');
+    return `${origin}/api/media/s3/${trimmed.replace(/^\/+/, '')}`;
+  }
+  // Relative uploads path - prepend backend origin
   if (trimmed.includes('/uploads/')) {
     const origin = (activeBackendUrl || BACKEND_URL || '').replace(/\/api\/?$/, '');
     const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;

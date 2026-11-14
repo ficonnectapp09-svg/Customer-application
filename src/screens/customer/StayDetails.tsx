@@ -582,8 +582,8 @@ export default function StayDetails() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary || '#FF6A00']}
-            tintColor={colors.primary || '#FF6A00'}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       >

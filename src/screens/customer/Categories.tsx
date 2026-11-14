@@ -3101,13 +3101,13 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
                 width: 48,
                 height: 48,
                 borderRadius: 24,
-                backgroundColor: 'rgba(255, 106, 0, 0.15)',
+                backgroundColor: isLight ? 'rgba(255, 106, 0, 0.15)' : 'rgba(245, 181, 27, 0.15)',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 1,
-                borderColor: 'rgba(255, 106, 0, 0.3)'
+                borderColor: isLight ? 'rgba(255, 106, 0, 0.3)' : 'rgba(245, 181, 27, 0.3)'
               },
-              children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Icons.Grid, { color: '#FF6A00', size: 24 })
+              children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Icons.Grid, { color: isLight ? '#FF6A00' : colors.primary, size: 24 })
             })]
           }), /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
             style: styles.rightHeaderRow,
@@ -3159,12 +3159,12 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
                       width: 22,
                       height: 22,
                       borderRadius: 11,
-                      backgroundColor: isLight ? '#FFF3E8' : 'rgba(255, 106, 0, 0.12)',
+                      backgroundColor: isLight ? '#FFF3E8' : 'rgba(245, 181, 27, 0.15)',
                       alignItems: 'center',
                       justifyContent: 'center',
                     },
                     children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Icons.ChevronRight, {
-                      color: '#FF6A00',
+                      color: isLight ? '#FF6A00' : colors.primary,
                       size: 13,
                       strokeWidth: 2.5
                     })

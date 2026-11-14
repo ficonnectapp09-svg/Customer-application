@@ -58,9 +58,22 @@ export const useNotificationStore = create<NotificationState>()(
               actionType: n.type === 'order' ? 'order' : undefined,
             }));
 
-            // Merge with local un-synced notifications if any
+            // Reconcile with local notifications:
+            // Match both serverIds AND orderIds to prevent duplicate copies
             const serverIds = new Set(mapped.map((m) => m.id));
-            const localOnly = get().notifications.filter((loc) => !serverIds.has(loc.id) && loc.id.startsWith('notif_'));
+            const serverOrderIds = new Set(mapped.map((m) => m.orderId).filter(Boolean));
+
+            const localOnly = get().notifications.filter((loc) => {
+              if (serverIds.has(loc.id)) return false;
+              if (loc.orderId && serverOrderIds.has(loc.orderId)) return false;
+              // Clean up stale local notifications older than 1 hour
+              if (loc.id.startsWith('notif_')) {
+                const ts = parseInt(loc.id.replace('notif_', ''), 10);
+                if (!isNaN(ts) && Date.now() - ts > 3600000) return false;
+                return true;
+              }
+              return false;
+            });
 
             const merged = [...mapped, ...localOnly];
             set({
@@ -133,19 +146,42 @@ export const useNotificationStore = create<NotificationState>()(
       },
 
       addNotification: (item) => {
+        const rawOrdId = item.orderId || item.bookingId;
+        const canonicalId = rawOrdId ? `ord-notif-${rawOrdId}` : `notif_${Date.now()}`;
         const newItem: NotificationItem = {
           ...item,
           title: item.title || 'Notification',
           body: item.body || item.message || '',
-          icon: item.icon || 'Bell',
-          id: `notif_${Date.now()}`,
+          icon: item.icon || (item.category === 'order' ? 'Package' : 'Bell'),
+          id: canonicalId,
+          orderId: rawOrdId,
+          bookingId: item.bookingId || rawOrdId,
           time: 'Just now',
           unread: true,
         };
-        set((state) => ({
-          notifications: [newItem, ...state.notifications],
-          unreadCount: state.unreadCount + 1,
-        }));
+
+        set((state) => {
+          // If a notification for this order already exists, update in-place instead of duplicating
+          const exists = state.notifications.some(
+            (n) => n.id === canonicalId || (rawOrdId && (n.orderId === rawOrdId || n.bookingId === rawOrdId))
+          );
+          if (exists) {
+            const updated = state.notifications.map((n) =>
+              (n.id === canonicalId || (rawOrdId && (n.orderId === rawOrdId || n.bookingId === rawOrdId)))
+                ? { ...n, ...newItem, id: canonicalId }
+                : n
+            );
+            return {
+              notifications: updated,
+              unreadCount: updated.filter((n) => n.unread).length,
+            };
+          }
+          const updated = [newItem, ...state.notifications];
+          return {
+            notifications: updated,
+            unreadCount: updated.filter((n) => n.unread).length,
+          };
+        });
       },
     }),
     {
