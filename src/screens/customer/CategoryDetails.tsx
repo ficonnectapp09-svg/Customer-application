@@ -547,12 +547,12 @@ export default function CategoryDetails() {
 
   // Service-Type Aware Field States
   const [consultationMode, setConsultationMode] = useState<'video' | 'clinic' | 'phone' | 'office'>('video');
-  const [patientNameInput, setPatientNameInput] = useState('Rahul Kumar');
+  const [patientNameInput, setPatientNameInput] = useState(useAuthStore.getState().currentUser?.name || '');
   const [symptomsInput, setSymptomsInput] = useState('');
   const [selectedProblemPackage, setSelectedProblemPackage] = useState('Standard Service & Jet Wash');
-  const [selectedAddress, setSelectedAddress] = useState('Koramangala 5th Block, Bangalore');
+  const [selectedAddress, setSelectedAddress] = useState('');
   const [selectedDuration, setSelectedDuration] = useState('1 Hour Session');
-  const [vehicleModelInput, setVehicleModelInput] = useState('Honda City - Petrol (KA-01-MJ-1234)');
+  const [vehicleModelInput, setVehicleModelInput] = useState('');
   const [fulfillmentMode, setFulfillmentMode] = useState<'doorstep' | 'workshop'>('doorstep');
   const [stayRoomType, setStayRoomType] = useState('Deluxe Garden View');
   const [requirementBrief, setRequirementBrief] = useState('');
@@ -3398,7 +3398,7 @@ export default function CategoryDetails() {
           payAtHotel: p.payAtHotel !== undefined ? p.payAtHotel : true,
           roomClass: p.roomClass || rawChild || 'Deluxe Room',
           bedType: p.bedType || '1 King Bed',
-          numberOfGuests: p.numberOfGuests || '2 Guests',
+          numberOfGuests: p.numberOfGuests || '1 Guest',
           roomSize: p.roomSize || '280 sq.ft',
           roomView: p.roomView || 'City View',
           checkInTime: p.checkInTime || '12:00 PM',
@@ -4672,7 +4672,7 @@ export default function CategoryDetails() {
                                   </>
                                 ) : (
                                   <>
-                                    <Icons.ShoppingCart color={colors.primary} size={11} strokeWidth={2.5} />
+                                    <Icons.ShoppingCart color="#000000" size={11} strokeWidth={2.5} />
                                     <Text style={styles.compactOutlineBtnText} numberOfLines={1}>Add to Cart</Text>
                                   </>
                                 )}
@@ -5282,7 +5282,7 @@ export default function CategoryDetails() {
                                       </>
                                     ) : (
                                       <>
-                                        <Icons.ShoppingCart color={colors.primary} size={12} strokeWidth={2.5} />
+                                        <Icons.ShoppingCart color="#000000" size={12} strokeWidth={2.5} />
                                         <Text style={[styles.travelActionBtnText, { color: colors.primary }]} numberOfLines={1}>
                                           Add to Cart
                                         </Text>
@@ -5474,7 +5474,7 @@ export default function CategoryDetails() {
                                       </>
                                     ) : (
                                       <>
-                                        <Icons.ShoppingCart color={colors.primary} size={11} strokeWidth={2.5} />
+                                        <Icons.ShoppingCart color="#000000" size={11} strokeWidth={2.5} />
                                         <Text style={styles.compactOutlineBtnText} numberOfLines={1}>Add to Cart</Text>
                                       </>
                                     )}
@@ -5498,7 +5498,7 @@ export default function CategoryDetails() {
                                       navigation.navigate('Checkout', { item: service });
                                     }}
                                   >
-                                    <Icons.Zap color="#FFFFFF" size={11} strokeWidth={2.5} fill="#FFFFFF" />
+                                    <Icons.Zap color="#000000" size={11} strokeWidth={2.5} fill="#000000" />
                                     <Text style={styles.compactPrimaryBtnText} numberOfLines={1}>Buy Now</Text>
                                   </TouchableOpacity>
                                 </>
@@ -5546,7 +5546,7 @@ export default function CategoryDetails() {
                                     </>
                                   ) : (
                                     <>
-                                      <Icons.ShoppingCart color={colors.primary} size={11} strokeWidth={2.5} />
+                                      <Icons.ShoppingCart color="#000000" size={11} strokeWidth={2.5} />
                                       <Text style={styles.compactOutlineBtnText} numberOfLines={1}>Add to Cart</Text>
                                     </>
                                   )}
@@ -10049,7 +10049,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#16A34A',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,

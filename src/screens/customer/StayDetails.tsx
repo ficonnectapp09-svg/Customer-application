@@ -99,7 +99,7 @@ export default function StayDetails() {
   const defaultCheckOutTime = stay.checkOutTime || '11:00 AM';
 
   const defaultRoomName = (stay.roomClass || 'Deluxe Room').toUpperCase();
-  const defaultRoomGuests = `${stay.numberOfGuests || '2 Guests'} • ${stay.bedType || '1 King Bed'}${stay.roomView ? ` • ${stay.roomView}` : ''}`;
+  const defaultRoomGuests = `${stay.numberOfGuests || '1 Guest'} • ${stay.bedType || '1 King Bed'}${stay.roomView ? ` • ${stay.roomView}` : ''}`;
   const hasBreakfastInAmenities = Array.isArray(stay.amenities)
     ? stay.amenities.some((a: any) => typeof a === 'string' && (a.includes('Breakfast') || a.includes('Free Breakfast')))
     : (typeof stay.amenities === 'string' ? (stay.amenities.includes('Breakfast') || stay.amenities.includes('Free Breakfast')) : false);
@@ -272,7 +272,7 @@ export default function StayDetails() {
   const [manualCheckOutTime, setManualCheckOutTime] = useState<string>(defaultCheckOutTime);
 
   // Guests & Rooms Configuration State
-  const [adultsCount, setAdultsCount] = useState<number>(2);
+  const [adultsCount, setAdultsCount] = useState<number>(1);
   const [childrenCount, setChildrenCount] = useState<number>(0);
   const [roomsCount, setRoomsCount] = useState<number>(1);
 
@@ -441,7 +441,6 @@ export default function StayDetails() {
   const totalGuestsCount = adultsCount + childrenCount;
   const [guestList, setGuestList] = useState<GuestInfo[]>([
     { fullName: currentUser?.name || '', aadhaarNumber: '', phoneNumber: currentUser?.phone || '' },
-    { fullName: '', aadhaarNumber: '', phoneNumber: '' },
   ]);
 
   // Keep guestList length synchronized with totalGuestsCount (Adults + Children)
@@ -735,7 +734,7 @@ export default function StayDetails() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748B', textTransform: 'uppercase' }}>Guests</Text>
                   <Text style={[{ fontSize: 12, fontWeight: '800' }, { color: colors.text }]} numberOfLines={1}>
-                    {stay.numberOfGuests || '2 Guests'}
+                    {stay.numberOfGuests || '1 Guest'}
                   </Text>
                 </View>
               </View>

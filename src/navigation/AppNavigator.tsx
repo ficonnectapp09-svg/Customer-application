@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 import { useThemeStore } from '../store/themeStore';
 import { useTranslation } from '../store/languageStore';
 import { View, Text, StatusBar, TouchableOpacity, Pressable } from 'react-native';
@@ -223,6 +224,7 @@ function CustomerTabNavigator() {
   const colors = useThemeStore((state) => state.colors);
   const isDark = useThemeStore((state) => state.isDark);
   const currentUser = useAuthStore((state) => state.currentUser);
+  const isSidebarOpen = useUIStore((state) => state.isSidebarOpen);
   const { t, currentLanguage, refreshKey } = useTranslation();
 
   return (
@@ -234,7 +236,7 @@ function CustomerTabNavigator() {
         freezeOnBlur: true,
         tabBarHideOnKeyboard: true,
         tabBarButton: (props) => <FastTabButton {...props} />,
-        tabBarStyle: {
+        tabBarStyle: isSidebarOpen ? { display: 'none' } : {
           backgroundColor: colors.tabBarBg,
           borderTopColor: isDark ? colors.tabBarBorder : '#F1EAD8',
           borderTopWidth: 1,

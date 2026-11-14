@@ -244,7 +244,7 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
             </Text>
           </View>
         ) : computedDiscount ? (
-          <View style={[styles.discountBadge, { backgroundColor: '#EF4444' }]}>
+          <View style={[styles.discountBadge, { backgroundColor: '#16A34A' }]}>
             <Text style={styles.discountBadgeText}>
               {typeof computedDiscount === 'string' && computedDiscount.includes('OFF')
                 ? `${computedDiscount.replace('OFF', '').trim()} ${t('OFF')}`
@@ -341,7 +341,7 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
                 </>
               ) : (
                 <>
-                  <Icons.ShoppingCart color={isDark ? '#F5B51B' : '#FF6A00'} size={11} strokeWidth={2.5} />
+                  <Icons.ShoppingCart color="#000000" size={11} strokeWidth={2.5} />
                   <Text style={[styles.outlineBtnText, { color: isDark ? '#F5B51B' : '#FF6A00' }]} numberOfLines={1}>{t('Add to Cart')}</Text>
                 </>
               )}
@@ -378,7 +378,7 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
                 </>
               ) : (
                 <>
-                  <Icons.ShoppingCart color={isDark ? '#F5B51B' : '#FF6A00'} size={11} strokeWidth={2.5} />
+                  <Icons.ShoppingCart color="#000000" size={11} strokeWidth={2.5} />
                   <Text style={[styles.outlineBtnText, { color: isDark ? '#F5B51B' : '#FF6A00' }]} numberOfLines={1}>{t('Add to Cart')}</Text>
                 </>
               )}
@@ -390,7 +390,7 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
               onPress={handleBuyNow}
               disabled={isProcessing}
             >
-              <Icons.Zap color={isDark ? '#020B1A' : '#FFFFFF'} size={11} strokeWidth={2.5} fill={isDark ? '#020B1A' : '#FFFFFF'} />
+              <Icons.Zap color="#000000" size={11} strokeWidth={2.5} fill="#000000" />
               <Text style={[styles.primaryBtnText, { color: isDark ? '#020B1A' : '#FFFFFF' }]} numberOfLines={1}>{t('Buy Now')}</Text>
             </TouchableOpacity>
           </>

@@ -2597,14 +2597,14 @@ export default function CustomerOrders() {
                   width: 38,
                   height: 38,
                   borderRadius: 10,
-                  backgroundColor: isLight ? '#FDF2F8' : 'rgba(236, 72, 153, 0.15)',
+                  backgroundColor: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.06)',
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 1,
-                  borderColor: isLight ? '#FBCFE8' : 'rgba(236, 72, 153, 0.3)',
+                  borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
                 }}
               >
-                <Icons.Bus color="#EC4899" size={20} />
+                <Icons.Bus color={colors.text} size={20} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 15, fontWeight: '900', color: colors.text }} numberOfLines={1}>
@@ -2778,7 +2778,9 @@ export default function CustomerOrders() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 4,
-                  backgroundColor: isLight ? '#EFF6FF' : 'rgba(59, 130, 246, 0.12)',
+                  backgroundColor: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.06)',
+                  borderWidth: 1,
+                  borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
                   paddingHorizontal: 8,
                   paddingVertical: 3.5,
                   borderRadius: 6,
@@ -2791,7 +2793,7 @@ export default function CustomerOrders() {
                   style={{
                     fontSize: 11,
                     fontWeight: '900',
-                    color: '#3B82F6',
+                    color: colors.text,
                     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
                   }}
                 >
@@ -3081,15 +3083,15 @@ export default function CustomerOrders() {
                 </Text>
                 <View
                   style={{
-                    backgroundColor: isLight ? '#F5F3FF' : 'rgba(139, 92, 246, 0.2)',
+                    backgroundColor: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.06)',
                     paddingHorizontal: 7,
                     paddingVertical: 2,
                     borderRadius: 6,
                     borderWidth: 1,
-                    borderColor: isLight ? '#DDD6FE' : 'rgba(139, 92, 246, 0.3)',
+                    borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
                   }}
                 >
-                  <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#7C3AED' }}>
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', color: colors.text }}>
                     {sInfo.timeStr}
                   </Text>
                 </View>
@@ -3216,7 +3218,7 @@ export default function CustomerOrders() {
     const checkInStr = o.checkInDate || o.check_in || (o.dates?.split('to')[0]?.trim()) || 'Check-in: 02:00 PM';
     const checkOutStr = o.checkOutDate || o.check_out || (o.dates?.split('to')[1]?.trim()) || 'Check-out: 11:00 AM';
     const roomTypeStr = o.room_type || o.roomName || 'Deluxe Room';
-    const guestsStr = o.guests_count || (o.adults ? `${o.adults} Adults${o.children ? `, ${o.children} Children` : ''}` : '2 Guests');
+    const guestsStr = o.guests_count || (o.adults ? `${o.adults} Adults${o.children ? `, ${o.children} Children` : ''}` : '1 Guest');
     const paymentStatusStr = (order.payment_status || (o.paymentStatus === 'Paid' ? 'Paid' : 'Paid')).toUpperCase();
     const isPaymentPaid = paymentStatusStr.includes('PAID');
     const customerName = order.customer_name || o.memberName || currentUser?.name || 'Customer';
@@ -3701,7 +3703,7 @@ export default function CustomerOrders() {
                           ]}
                         >
                           {order.check_in
-                            ? `${order.check_in.split(',')[0]} • ${order.guests_count || '2 Guests'}`
+                            ? `${order.check_in.split(',')[0]} • ${order.guests_count || '1 Guest'}`
                             : order.product_details}
                         </Text>
                       </View>
@@ -4858,10 +4860,10 @@ export default function CustomerOrders() {
                           {/* 1. Bus Operator & Status Header Card */}
                           <View
                             style={{
-                              backgroundColor: isLight ? '#FDF2F8' : 'rgba(236, 72, 153, 0.08)',
+                              backgroundColor: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.04)',
                               borderRadius: 16,
                               borderWidth: 1,
-                              borderColor: isLight ? '#FBCFE8' : 'rgba(236, 72, 153, 0.25)',
+                              borderColor: isLight ? '#E2E8F0' : colors.cardBorder,
                               padding: 16,
                               marginBottom: 14,
                             }}
@@ -4872,18 +4874,18 @@ export default function CustomerOrders() {
                                   width: 48,
                                   height: 48,
                                   borderRadius: 14,
-                                  backgroundColor: isLight ? '#EC4899' : 'rgba(236, 72, 153, 0.25)',
+                                  backgroundColor: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.08)',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                 }}
                               >
-                                <Icons.Bus color={isLight ? '#FFFFFF' : '#F472B6'} size={24} />
+                                <Icons.Bus color={colors.text} size={24} />
                               </View>
                               <View style={{ flex: 1 }}>
                                 <Text style={{ fontSize: 17, fontWeight: '900', color: colors.text }}>
                                   {busInfo.busName}
                                 </Text>
-                                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#EC4899', marginTop: 2 }}>
+                                <Text style={{ fontSize: 12.5, fontWeight: '700', color: colors.subtext, marginTop: 2 }}>
                                   {busInfo.operatorName ? `${busInfo.operatorName} • ${busInfo.busType}` : busInfo.busType}
                                 </Text>
                               </View>
@@ -4920,15 +4922,15 @@ export default function CustomerOrders() {
                               </View>
                               <View
                                 style={{
-                                  backgroundColor: busInfo.hasAllocatedSeat
-                                    ? (isLight ? '#EFF6FF' : 'rgba(59, 130, 246, 0.15)')
-                                    : (isLight ? '#FFFBEB' : 'rgba(245, 158, 11, 0.15)'),
+                                  backgroundColor: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.08)',
+                                  borderWidth: 1,
+                                  borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
                                   paddingHorizontal: 8,
                                   paddingVertical: 3,
                                   borderRadius: 6,
                                 }}
                               >
-                                <Text style={{ fontSize: 11, fontWeight: '800', color: busInfo.hasAllocatedSeat ? '#3B82F6' : '#D97706' }}>
+                                <Text style={{ fontSize: 11, fontWeight: '800', color: colors.text }}>
                                   {busInfo.seatString}
                                 </Text>
                               </View>
@@ -5066,13 +5068,15 @@ export default function CustomerOrders() {
                               </Text>
                               <View
                                 style={{
-                                  backgroundColor: isLight ? '#EFF6FF' : 'rgba(59, 130, 246, 0.15)',
+                                  backgroundColor: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.08)',
+                                  borderWidth: 1,
+                                  borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
                                   paddingHorizontal: 8,
                                   paddingVertical: 3,
                                   borderRadius: 6,
                                 }}
                               >
-                                <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#3B82F6' }}>
+                                <Text style={{ fontSize: 10.5, fontWeight: '800', color: colors.text }}>
                                   {busInfo.passengerCount} {busInfo.passengerCount === 1 ? 'PASSENGER' : 'PASSENGERS'}
                                 </Text>
                               </View>
@@ -5101,12 +5105,14 @@ export default function CustomerOrders() {
                                           width: 34,
                                           height: 34,
                                           borderRadius: 17,
-                                          backgroundColor: isLight ? '#FDF2F8' : 'rgba(236, 72, 153, 0.15)',
+                                          backgroundColor: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.08)',
+                                          borderWidth: 1,
+                                          borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
                                           alignItems: 'center',
                                           justifyContent: 'center',
                                         }}
                                       >
-                                        <Text style={{ fontSize: 13, fontWeight: '900', color: '#EC4899' }}>P{idx + 1}</Text>
+                                        <Text style={{ fontSize: 13, fontWeight: '900', color: colors.text }}>P{idx + 1}</Text>
                                       </View>
                                       <View style={{ flex: 1 }}>
                                         <Text style={{ fontSize: 14, fontWeight: '800', color: colors.text }} numberOfLines={1}>
@@ -5428,7 +5434,7 @@ export default function CustomerOrders() {
                                     width: 56,
                                     height: 56,
                                     borderRadius: 12,
-                                    backgroundColor: isLight ? '#F5F3FF' : '#1E1B4B',
+                                    backgroundColor: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.08)',
                                   }}
                                   resizeMode="cover"
                                 />
@@ -5438,14 +5444,14 @@ export default function CustomerOrders() {
                                     width: 56,
                                     height: 56,
                                     borderRadius: 12,
-                                    backgroundColor: isLight ? '#F5F3FF' : 'rgba(139, 92, 246, 0.18)',
+                                    backgroundColor: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.08)',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     borderWidth: 1,
-                                    borderColor: isLight ? '#DDD6FE' : 'rgba(139, 92, 246, 0.3)',
+                                    borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
                                   }}
                                 >
-                                  <Icons.Wrench color="#8B5CF6" size={26} />
+                                  <Icons.Wrench color={colors.text} size={26} />
                                 </View>
                               )}
                               <View style={{ flex: 1 }}>
@@ -5455,13 +5461,15 @@ export default function CustomerOrders() {
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 }}>
                                   <View
                                     style={{
-                                      backgroundColor: isLight ? '#F5F3FF' : 'rgba(139, 92, 246, 0.15)',
+                                      backgroundColor: isLight ? '#F1F5F9' : 'rgba(255, 255, 255, 0.08)',
+                                      borderWidth: 1,
+                                      borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
                                       paddingHorizontal: 8,
                                       paddingVertical: 2,
                                       borderRadius: 6,
                                     }}
                                   >
-                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#8B5CF6' }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '800', color: colors.text }}>
                                       {sInfo.packageLabel}
                                     </Text>
                                   </View>
@@ -6055,10 +6063,10 @@ export default function CustomerOrders() {
                           {/* 9. Connect 30-Day Service Guarantee Banner */}
                           <View
                             style={{
-                              backgroundColor: isLight ? '#F5F3FF' : 'rgba(139, 92, 246, 0.08)',
+                              backgroundColor: isLight ? '#F8FAFC' : 'rgba(255, 255, 255, 0.04)',
                               borderRadius: 14,
                               borderWidth: 1,
-                              borderColor: isLight ? '#DDD6FE' : 'rgba(139, 92, 246, 0.25)',
+                              borderColor: isLight ? '#E2E8F0' : colors.cardBorder,
                               padding: 12,
                               flexDirection: 'row',
                               alignItems: 'center',
@@ -6066,7 +6074,7 @@ export default function CustomerOrders() {
                               marginBottom: 16,
                             }}
                           >
-                            <Icons.ShieldCheck color="#8B5CF6" size={20} />
+                            <Icons.ShieldCheck color={colors.text} size={20} />
                             <View style={{ flex: 1 }}>
                               <Text style={{ fontSize: 12, fontWeight: '800', color: isLight ? '#5B21B6' : '#C4B5FD' }}>
                                 Connect 30-Day Service Guarantee
@@ -6139,7 +6147,7 @@ export default function CustomerOrders() {
                     const checkInStr = o.checkInDate || o.check_in || (o.dates?.split('to')[0]?.trim()) || '02:00 PM';
                     const checkOutStr = o.checkOutDate || o.check_out || (o.dates?.split('to')[1]?.trim()) || '11:00 AM';
                     const roomTypeStr = o.room_type || o.roomName || 'Deluxe Room';
-                    const guestsStr = o.guests_count || (o.adults ? `${o.adults} Adults${o.children ? `, ${o.children} Children` : ''}` : '2 Guests');
+                    const guestsStr = o.guests_count || (o.adults ? `${o.adults} Adults${o.children ? `, ${o.children} Children` : ''}` : '1 Guest');
                     const paymentStatusStr = (selectedOrderForDetails.payment_status || (o.paymentStatus === 'Paid' ? 'Paid' : 'Paid')).toUpperCase();
                     const isPaymentPaid = paymentStatusStr.includes('PAID');
                     const customerName = selectedOrderForDetails.customer_name || o.memberName || currentUser?.name || 'Customer';

@@ -273,7 +273,7 @@ export default function HomeDashboard() {
   // Sidebar Menu State & Animations
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen);
   const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen);
-  const slideAnim = useRef(new Animated.Value(-width * 0.85)).current;
+  const slideAnim = useRef(new Animated.Value(-width)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [headerHeight, setHeaderHeight] = useState(0);
 
@@ -422,7 +422,7 @@ export default function HomeDashboard() {
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, {
-          toValue: -width * 0.85,
+          toValue: -width,
           duration: 200,
           useNativeDriver: true,
         }),
@@ -1039,41 +1039,66 @@ export default function HomeDashboard() {
         }}
       >
         <View style={styles.navbar}>
-          {/* Row 1: Logo & Branded Title on Left, Action Badges on Right */}
+          {/* Row 1: Left: Menu Bar + Location Selector Pill; Right: Wishlist -> Cart -> Notifications */}
           <View style={styles.topHeaderRow}>
-            {/* 1. Official Logo & Brand Header matching reference screenshot */}
-            <TouchableOpacity
-              style={styles.headerWelcomeGroup}
-              activeOpacity={0.8}
-              onPress={() => {
-                setIsSidebarOpen(true);
-              }}
-            >
-              <Image
-                source={require('../../assets/images/forge_india_logo.jpg')}
+            {/* Left Group: Menu Bar + Location Selector Pill */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+              <TouchableOpacity
                 style={[
-                  styles.headerConnectLogo,
+                  styles.hamburgerBtn,
                   {
-                    width: 44,
-                    height: 44,
-                    borderRadius: 22,
-                    borderWidth: 1.8,
-                    borderColor: isLightActive ? '#F1EAD8' : '#8B681F',
+                    backgroundColor: isLightActive ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.1)',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }
                 ]}
-                resizeMode="cover"
-              />
-              <View style={styles.headerWelcomeTextCol}>
-                <Text style={{ fontSize: 16.5, fontWeight: '800', color: colors.text }} numberOfLines={1}>
-                  Forge India Connect
-                </Text>
-                <Text style={{ fontSize: 11.5, color: isLightActive ? '#64748B' : '#8E9BB0', fontWeight: '500', marginTop: 1 }} numberOfLines={1}>
-                  Shop • Book • Travel • More
-                </Text>
-              </View>
-            </TouchableOpacity>
+                activeOpacity={0.7}
+                onPress={handleMenuPress}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Icons.Menu color={isLightActive ? '#0F172A' : '#FFFFFF'} size={22} strokeWidth={2.2} />
+              </TouchableOpacity>
 
-            {/* 2. Right Action Icons: Wishlist (badge 2) -> Cart (badge 1) -> Notifications -> Hamburger */}
+              {/* Location Selector Pill */}
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: isLightActive ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.1)',
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
+                  borderRadius: 20,
+                  maxWidth: width * 0.52,
+                  borderWidth: 1,
+                  borderColor: isLightActive ? 'rgba(15, 23, 42, 0.1)' : 'rgba(255, 255, 255, 0.15)',
+                }}
+                activeOpacity={0.75}
+                onPress={() => {
+                  setIsSidebarLocationView(true);
+                  setIsSidebarOpen(true);
+                }}
+              >
+                <Icons.MapPin color={isLightActive ? '#FF6A00' : '#F5B51B'} size={15} strokeWidth={2.2} />
+                <Text
+                  style={{
+                    fontSize: 12.5,
+                    fontWeight: '700',
+                    color: isLightActive ? '#0F172A' : '#FFFFFF',
+                    flexShrink: 1,
+                  }}
+                  numberOfLines={1}
+                >
+                  {getDisplayLocation() || 'Select Location'}
+                </Text>
+                <Icons.ChevronDown color={isLightActive ? '#64748B' : '#94A3B8'} size={13} strokeWidth={2.2} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Right Action Icons: Wishlist -> Cart -> Notifications */}
             <View style={styles.navRightGroup}>
               <TouchableOpacity
                 style={styles.navIconBtn}
@@ -1082,13 +1107,15 @@ export default function HomeDashboard() {
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               >
                 <Icons.Heart 
-                  color="#FFFFFF" 
+                  color={isLightActive ? '#0F172A' : '#FFFFFF'} 
                   size={21} 
                   strokeWidth={2}
                 />
-                <View style={[styles.badge, { backgroundColor: '#EF4444', top: -3, right: -4, minWidth: 15, height: 15, borderRadius: 7.5, alignItems: 'center', justifyContent: 'center' }]}>
-                  <Text style={[styles.badgeText, { fontSize: 9, fontWeight: '800' }]}>{wishlistItems.length > 0 ? wishlistItems.length : 2}</Text>
-                </View>
+                {wishlistItems.length > 0 && (
+                  <View style={[styles.badge, { backgroundColor: '#EF4444', top: -3, right: -4, minWidth: 15, height: 15, borderRadius: 7.5, alignItems: 'center', justifyContent: 'center' }]}>
+                    <Text style={[styles.badgeText, { fontSize: 9, fontWeight: '800' }]}>{wishlistItems.length}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1097,10 +1124,12 @@ export default function HomeDashboard() {
                 onPress={() => navigation.navigate('Cart')}
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               >
-                <Icons.ShoppingCart color="#FFFFFF" size={21} strokeWidth={2} />
-                <View style={[styles.badge, { backgroundColor: '#EF4444', top: -3, right: -4, minWidth: 15, height: 15, borderRadius: 7.5, alignItems: 'center', justifyContent: 'center' }]}>
-                  <Text style={[styles.badgeText, { fontSize: 9, fontWeight: '800' }]}>{totalCartCount > 0 ? totalCartCount : 1}</Text>
-                </View>
+                <Icons.ShoppingCart color={isLightActive ? '#0F172A' : '#FFFFFF'} size={21} strokeWidth={2} />
+                {totalCartCount > 0 && (
+                  <View style={[styles.badge, { backgroundColor: '#EF4444', top: -3, right: -4, minWidth: 15, height: 15, borderRadius: 7.5, alignItems: 'center', justifyContent: 'center' }]}>
+                    <Text style={[styles.badgeText, { fontSize: 9, fontWeight: '800' }]}>{totalCartCount}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1109,21 +1138,12 @@ export default function HomeDashboard() {
                 onPress={() => setIsNotifDropdownOpen((prev) => !prev)}
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               >
-                <Icons.Bell color="#FFFFFF" size={21} strokeWidth={2} />
+                <Icons.Bell color={isLightActive ? '#0F172A' : '#FFFFFF'} size={21} strokeWidth={2} />
                 {unreadNotifCount > 0 && (
                   <View style={[styles.badge, { backgroundColor: '#EF4444', top: -3, right: -4, minWidth: 15, height: 15, borderRadius: 7.5, alignItems: 'center', justifyContent: 'center' }]}>
                     <Text style={[styles.badgeText, { fontSize: 9, fontWeight: '800' }]}>{unreadNotifCount}</Text>
                   </View>
                 )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.hamburgerBtn}
-                activeOpacity={0.7}
-                onPress={handleMenuPress}
-                hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
-              >
-                <Icons.Menu color="#FFFFFF" size={23} strokeWidth={2.2} />
               </TouchableOpacity>
             </View>
           </View>
@@ -1358,6 +1378,11 @@ export default function HomeDashboard() {
             scrollEventThrottle={16}
           >
             {(banners || []).map((banner, bannerIdx) => {
+              const bannerTitle = banner.title || 'Exclusive Deals';
+              const bannerSubtitle = banner.subtitle || banner.badgeText || 'Special Offer';
+              const rawBannerImg = banner.image || (banner as any).imageUrl;
+              const bannerImgUri = rawBannerImg ? resolveImageUrl(rawBannerImg) : '';
+
               return (
                 <View key={banner.id || bannerIdx} style={{ width: width, alignItems: 'center' }}>
                   <TouchableOpacity
@@ -1378,14 +1403,11 @@ export default function HomeDashboard() {
                   >
                     {/* Left Promo Text Group */}
                     <View style={{ flex: 1.15, padding: 16, justifyContent: 'center', zIndex: 2 }}>
-                      <Text style={{ fontSize: 18, fontWeight: '900', color: '#FFFFFF', lineHeight: 23 }}>
-                        Discover
+                      <Text style={{ fontSize: 17, fontWeight: '900', color: '#FFFFFF', lineHeight: 22 }} numberOfLines={2}>
+                        {bannerTitle}
                       </Text>
-                      <Text style={{ fontSize: 18, fontWeight: '900', color: '#F5B51B', lineHeight: 23 }}>
-                        More Possibilities
-                      </Text>
-                      <Text style={{ fontSize: 11.5, color: '#C7D0DF', marginTop: 4, marginBottom: 12, fontWeight: '500' }}>
-                        Shop • Book • Travel • Enjoy
+                      <Text style={{ fontSize: 11.5, color: '#C7D0DF', marginTop: 4, marginBottom: 12, fontWeight: '500' }} numberOfLines={2}>
+                        {bannerSubtitle}
                       </Text>
                       <TouchableOpacity
                         style={{
@@ -1401,18 +1423,22 @@ export default function HomeDashboard() {
                         onPress={() => navigation.navigate('CategoryDetails', { categoryName: banner.targetCategory || 'Products' })}
                       >
                         <Text style={{ color: '#020B1A', fontSize: 12, fontWeight: '800' }}>
-                          Explore Now →
+                          {banner.buttonText || 'Explore Now'} →
                         </Text>
                       </TouchableOpacity>
                     </View>
 
-                    {/* Right Shopper Visual */}
-                    <View style={{ flex: 0.85, position: 'relative', height: '100%', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
-                      <Image
-                        source={{ uri: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80' }}
-                        style={{ width: '100%', height: '100%' }}
-                        resizeMode="cover"
-                      />
+                    {/* Right Banner Visual */}
+                    <View style={{ flex: 0.85, position: 'relative', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#071326' }}>
+                      {bannerImgUri ? (
+                        <Image
+                          source={{ uri: bannerImgUri }}
+                          style={{ width: '100%', height: '100%' }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Icons.Sparkles color="#F5B51B" size={40} />
+                      )}
                       {/* Subtle Gold Cart Watermark */}
                       <View style={{ position: 'absolute', top: 10, right: 12, opacity: 0.45 }}>
                         <Icons.ShoppingCart color="#F5B51B" size={26} strokeWidth={1.8} />
@@ -1425,32 +1451,34 @@ export default function HomeDashboard() {
 
           </ScrollView>
 
-          {/* Dots Indicator */}
-          <View style={[styles.bannerDotsRow, { marginTop: 10 }]}>
-            {(banners && banners.length > 0 ? banners : [1, 2, 3, 4]).map((_, idx) => (
-              <TouchableOpacity
-                key={idx}
-                activeOpacity={0.7}
-                onPress={() => {
-                  setActiveBannerIndex(idx);
-                  bannerScrollViewRef.current?.scrollTo({
-                    x: idx * width,
-                    animated: true,
-                  });
-                }}
-              >
-                <View
-                  style={{
-                    height: 6,
-                    borderRadius: 3,
-                    marginHorizontal: 3,
-                    backgroundColor: activeBannerIndex === idx ? '#F5B51B' : '#66748A',
-                    width: activeBannerIndex === idx ? 18 : 6,
+          {/* Dots Indicator (only if multiple banners) */}
+          {(banners && banners.length > 1) && (
+            <View style={[styles.bannerDotsRow, { marginTop: 10 }]}>
+              {banners.map((_, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setActiveBannerIndex(idx);
+                    bannerScrollViewRef.current?.scrollTo({
+                      x: idx * width,
+                      animated: true,
+                    });
                   }}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
+                >
+                  <View
+                    style={{
+                      height: 6,
+                      borderRadius: 3,
+                      marginHorizontal: 3,
+                      backgroundColor: activeBannerIndex === idx ? (isLightActive ? '#FF6A00' : '#F5B51B') : (isLightActive ? '#CBD5E1' : '#66748A'),
+                      width: activeBannerIndex === idx ? 18 : 6,
+                    }}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
         </View>
 
@@ -1578,36 +1606,11 @@ export default function HomeDashboard() {
           </View>
 
           {(() => {
-            const defaultFeaturedRecs = [
-              {
-                id: 'rec_ghee_dosa',
-                _id: 'rec_ghee_dosa',
-                name: 'Ghee Dosa',
-                category: 'Food',
-                subcategory: 'South Indian Food • 30 mins',
-                price: 150,
-                originalPrice: 170,
-                discount: '12% OFF',
-                rating: 4.5,
-                image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=500&auto=format&fit=crop&q=80',
-              },
-              {
-                id: 'rec_luxury_villa',
-                _id: 'rec_luxury_villa',
-                name: 'Luxury Villa',
-                category: 'Stay',
-                subcategory: 'Stay • Bangalore',
-                price: '₹4,000/night',
-                originalPrice: 4500,
-                discount: '11% OFF',
-                rating: 4.7,
-                image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=500&auto=format&fit=crop&q=80',
-              },
-            ];
-
             const recSource = recommendedItems.length >= 2 
               ? recommendedItems.slice(0, 2) 
-              : defaultFeaturedRecs;
+              : (dbProducts.length >= 2 ? dbProducts.slice(0, 2) : (recommendedItems.length > 0 ? recommendedItems : dbProducts.slice(0, 1)));
+
+            if (!recSource || recSource.length === 0) return null;
 
             const REC_CARD_WIDTH = (width - 32 - 12) / 2;
 
@@ -1734,7 +1737,7 @@ export default function HomeDashboard() {
                               position: 'absolute',
                               bottom: 7,
                               left: 7,
-                              backgroundColor: '#EF4444',
+                              backgroundColor: '#16A34A',
                               paddingHorizontal: 6.5,
                               paddingVertical: 2.5,
                               borderRadius: 6,
@@ -2994,44 +2997,62 @@ export default function HomeDashboard() {
         </View>
       </Modal>
 
-      {/* Sidebar Drawer Overlay (Always sits underneath the fully-visible Top Header) */}
-      <Animated.View 
-        pointerEvents={isSidebarOpen ? 'auto' : 'none'}
-        style={[
-          StyleSheet.absoluteFill, 
-          { 
-            top: headerHeight || insets.top + 94, 
-            zIndex: 900, 
-            elevation: 8,
-            opacity: fadeAnim,
-          }
-        ]}
-      >
-        {/* Backdrop */}
-        <TouchableOpacity 
-          style={styles.backdrop} 
-          activeOpacity={1} 
-          onPress={() => {
-            setIsSidebarOpen(false);
+      {/* Full-Screen Menu Drawer Overlay */}
+      <Modal
+        visible={isSidebarOpen}
+        transparent={true}
+        animationType="none"
+        statusBarTranslucent={true}
+        onRequestClose={() => {
+          if (isSidebarLanguageView) {
             setIsSidebarLanguageView(false);
+          } else if (isSidebarLocationView) {
             setIsSidebarLocationView(false);
-          }}
-        />
+          } else {
+            setIsSidebarOpen(false);
+          }
+        }}
+      >
+        <View style={StyleSheet.absoluteFill}>
+          {/* Full-Screen Backdrop with Blur/Dim effect covering complete viewport */}
+          <Animated.View 
+            style={[
+              StyleSheet.absoluteFill, 
+              { 
+                backgroundColor: isDark ? 'rgba(2, 11, 26, 0.88)' : 'rgba(15, 23, 42, 0.65)',
+                opacity: fadeAnim,
+              }
+            ]}
+          >
+            <TouchableOpacity 
+              style={StyleSheet.absoluteFill} 
+              activeOpacity={1} 
+              onPress={() => {
+                setIsSidebarOpen(false);
+                setIsSidebarLanguageView(false);
+                setIsSidebarLocationView(false);
+              }}
+            />
+          </Animated.View>
 
-        {/* Slide-out Sidebar Panel */}
-        <Animated.View 
-          style={[
-            styles.sidebar, 
-            { 
-              width: width * 0.84,
-              top: 0,
-              bottom: 0,
-              backgroundColor: colors.background,
-              borderRightColor: colors.cardBorder,
-              transform: [{ translateX: slideAnim }] 
-            }
-          ]}
-        >
+          {/* Full-Screen Slide-out Menu Panel */}
+          <Animated.View 
+            style={[
+              styles.sidebar, 
+              { 
+                width: width,
+                height: '100%',
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: colors.background,
+                borderRightWidth: 0,
+                paddingTop: insets.top,
+                transform: [{ translateX: slideAnim }] 
+              }
+            ]}
+          >
             {isSidebarLanguageView ? (
               /* --- SIDEBAR: LANGUAGE SELECTION VIEW --- */
               <View style={{ flex: 1 }}>
@@ -3211,6 +3232,7 @@ export default function HomeDashboard() {
                     onPress={() => {
                       setLocation('Karnataka', 'Bengaluru', true);
                       setIsSidebarLocationView(false);
+                      setIsSidebarOpen(false);
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
@@ -3345,6 +3367,7 @@ export default function HomeDashboard() {
                               onPress={() => {
                                 setLocation(item.state, '', false);
                                 setIsSidebarLocationView(false);
+                                setIsSidebarOpen(false);
                               }}
                             >
                               <Text style={{ fontSize: 12, fontWeight: '600', color: isStateSelected ? colors.primary : colors.text }}>
@@ -3378,6 +3401,7 @@ export default function HomeDashboard() {
                                   onPress={() => {
                                     setLocation(item.state, city, false);
                                     setIsSidebarLocationView(false);
+                                    setIsSidebarOpen(false);
                                   }}
                                 >
                                   <Text style={{ fontSize: 12, color: isCitySelected ? colors.primary : colors.text, fontWeight: isCitySelected ? 'bold' : 'normal' }}>
@@ -3410,11 +3434,15 @@ export default function HomeDashboard() {
                   </View>
                   <TouchableOpacity 
                     style={styles.sidebarCloseBtn} 
-                    onPress={() => setIsSidebarOpen(false)}
+                    onPress={() => {
+                      setIsSidebarOpen(false);
+                      setIsSidebarLanguageView(false);
+                      setIsSidebarLocationView(false);
+                    }}
                     activeOpacity={0.7}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
                   >
-                    <Icons.X color={colors.text} size={20} />
+                    <Icons.X color={colors.text} size={22} />
                   </TouchableOpacity>
                 </View>
 
@@ -3698,7 +3726,8 @@ export default function HomeDashboard() {
               </View>
             )}
           </Animated.View>
-      </Animated.View>
+        </View>
+      </Modal>
 
       {/* Universal Search Experience Modal (Matching Light Customer App Theme) */}
       <Modal

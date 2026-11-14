@@ -1811,7 +1811,7 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
               payAtHotel: p.payAtHotel !== undefined ? p.payAtHotel : true,
               roomClass: p.roomClass || 'Deluxe Room',
               bedType: p.bedType || '1 King Bed',
-              numberOfGuests: p.numberOfGuests || '2 Guests',
+              numberOfGuests: p.numberOfGuests || '1 Guest',
               roomSize: p.roomSize || '280 sq.ft',
               roomView: p.roomView || 'City View',
               checkInTime: p.checkInTime || '12:00 PM',
