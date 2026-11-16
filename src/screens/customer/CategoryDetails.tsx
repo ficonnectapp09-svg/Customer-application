@@ -1783,16 +1783,26 @@ export default function CategoryDetails() {
     // Also collect subcategories from live apiProducts matching this main category
     const apiSubcats = new Set<string>();
     (apiProducts || []).forEach((p: any) => {
+      const isJobProduct = Boolean(p.jobType || p.jobLocation || p.candidateResume || ['IT', 'Non-IT'].includes(p.category));
+      if (normTarget === 'food' && isJobProduct) return;
       const pMainNorm = cleanStr(normalizeMainCategoryName(p.mainCategory || p.subNavbarCategory || ''));
       if (pMainNorm === normTarget || pMainNorm === categoryName.toLowerCase()) {
         const sub = p.category || p.subcategory || p.subCategory;
         if (sub && typeof sub === 'string' && sub.trim()) {
-          apiSubcats.add(sub.trim());
+          const subTrim = sub.trim();
+          if (normTarget === 'food' && (subTrim.toLowerCase() === 'it' || subTrim.toLowerCase() === 'non-it' || subTrim.toLowerCase().includes('job'))) return;
+          apiSubcats.add(subTrim);
         }
       }
     });
 
-    const merged = Array.from(new Set([...sidebarSubcats, ...Array.from(apiSubcats)]));
+    const merged = Array.from(new Set([...sidebarSubcats, ...Array.from(apiSubcats)]))
+      .filter((s) => {
+        const sLow = s.toLowerCase().trim();
+        if (sLow === 'products' || sLow === 'product' || sLow === 'all' || sLow === normTarget) return false;
+        if (normTarget === 'food' && (sLow === 'it' || sLow === 'non-it' || sLow.includes('job'))) return false;
+        return true;
+      });
     if (merged.length > 0) {
       return ['All', ...merged];
     }
@@ -2134,7 +2144,7 @@ export default function CategoryDetails() {
           mainCategory: p.mainCategory || p.subNavbarCategory || (isTravelItem ? 'Travel' : categoryName || 'Products'),
           desc: p.description || p.desc || 'Quality product verified by Connect',
           rating: String(p.rating || '4.8'),
-          reviews: String(p.ratingCount || '1.2k'),
+          reviews: String(p.ratingCount || '12K'),
           price: typeof p.price === 'number' ? `₹${p.price.toLocaleString('en-IN')}` : String(p.price || '₹0'),
           priceNum: numPrice,
           originalPrice: p.originalPrice ? (typeof p.originalPrice === 'number' ? `₹${p.originalPrice.toLocaleString('en-IN')}` : String(p.originalPrice)) : undefined,

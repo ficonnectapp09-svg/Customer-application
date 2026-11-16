@@ -434,12 +434,31 @@ export const useOrderStore = create<OrderState>()(
             });
 
             // Retain only recent optimistic local offline orders that belong to THIS customer (within 5 mins)
+            // and ensure they are not already represented in backend by ID, order_number, or amount+items match
             const localOnly = current.filter((o: any) => {
               const matchesBackend =
                 (o.id && backendIdSet.has(String(o.id))) ||
                 (o._id && backendIdSet.has(String(o._id))) ||
                 (o.order_number && backendOrderNumSet.has(String(o.order_number)));
               if (matchesBackend) return false;
+
+              // Reconcile optimistic order if matching amount + item name within 5 minutes
+              const oAmt = Number(o.amount || o.finalAmount || 0);
+              const oTime = new Date(o.created_at || 0).getTime();
+              const isRepresented = res.data.some((b: any) => {
+                const bAmt = Number(b.amount || b.finalAmount || 0);
+                const bTime = new Date(b.created_at || b.createdAt || 0).getTime();
+                if (oAmt === bAmt && Math.abs(oTime - bTime) < 300000) {
+                  const oFirst = String(o.items?.[0]?.name || o.product_details || '').toLowerCase().trim();
+                  const bFirst = String(b.items?.[0]?.name || b.product_details || '').toLowerCase().trim();
+                  if (oFirst && bFirst && (oFirst === bFirst || oFirst.includes(bFirst) || bFirst.includes(oFirst))) {
+                    return true;
+                  }
+                }
+                return false;
+              });
+              if (isRepresented) return false;
+
               const isRecentOptimistic = (now - new Date(o.created_at || 0).getTime()) < 300000;
               if (!isRecentOptimistic) return false;
 
@@ -449,7 +468,23 @@ export const useOrderStore = create<OrderState>()(
               return Boolean(belongsToCurUser);
             });
 
-            const mergedList = [...res.data, ...localOnly].map(normalizeStoredOrderCategory);
+            // Strict deduplication pass
+            const seenKeys = new Set<string>();
+            const deduplicated: any[] = [];
+            [...res.data, ...localOnly].forEach((ord: any) => {
+              const key1 = String(ord.id || '');
+              const key2 = String(ord._id || '');
+              const key3 = String(ord.order_number || '');
+              if (key1 && seenKeys.has(key1)) return;
+              if (key2 && seenKeys.has(key2)) return;
+              if (key3 && seenKeys.has(key3)) return;
+              if (key1) seenKeys.add(key1);
+              if (key2) seenKeys.add(key2);
+              if (key3) seenKeys.add(key3);
+              deduplicated.push(ord);
+            });
+
+            const mergedList = deduplicated.map(normalizeStoredOrderCategory);
             mergedList.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
             set({ allOrders: mergedList });
           }

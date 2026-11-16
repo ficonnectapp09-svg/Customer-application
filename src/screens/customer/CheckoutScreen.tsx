@@ -103,10 +103,29 @@ const parsePrice = (priceVal: any): number => {
   return isNaN(num) ? 0 : Math.round(num);
 };
 
+const safeAddrStr = (v: any): string => {
+  if (!v) return '';
+  if (typeof v === 'string') {
+    if (v.includes('[object Object]')) return '';
+    return v.trim();
+  }
+  if (typeof v === 'object') {
+    const candidate = v.name || v.street || v.house || v.address || v.line1 || v.fullAddress || '';
+    return typeof candidate === 'string' && !candidate.includes('[object Object]') ? candidate.trim() : '';
+  }
+  return String(v).trim();
+};
+
 const formatAddressSummary = (addr: CustomerAddress): string => {
   if (!addr) return 'Home Address';
-  const parts = [addr.house, addr.street, addr.city, addr.pincode].filter(Boolean);
-  return `${addr.label || 'Home'} — ${parts.join(', ')}`;
+  const label = safeAddrStr(addr.label) || 'Home';
+  const house = safeAddrStr(addr.house);
+  const street = safeAddrStr(addr.street);
+  const city = safeAddrStr(addr.city);
+  const pincode = safeAddrStr(addr.pincode);
+  const parts = [house, street, city, pincode].filter(Boolean);
+  const joined = parts.join(', ');
+  return joined ? `${label} — ${joined}` : `${label} — Current Location`;
 };
 
 export default function CheckoutScreen() {

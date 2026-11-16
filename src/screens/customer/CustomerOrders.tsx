@@ -766,48 +766,68 @@ export default function CustomerOrders() {
 
   // Status Badge Colors & Info
   const getStatusMeta = (status: string) => {
-    const s = (status || '').toLowerCase();
+    const s = (status || '').toLowerCase().trim();
     if (isCompletedStatus(status)) {
       return {
         label: (status || 'DELIVERED').toUpperCase(),
-        color: '#15803D',
-        bg: '#DCFCE7',
-        border: '#BBF7D0',
+        color: '#059669',
+        bg: '#D1FAE5',
+        border: '#A7F3D0',
       };
     }
     if (isCancelledStatus(status)) {
       return {
         label: 'CANCELLED',
-        color: '#B91C1C',
+        color: '#DC2626',
         bg: '#FEE2E2',
         border: '#FECACA',
       };
     }
-    if (
-      s.includes('out for delivery') ||
-      s.includes('in transit') ||
-      s.includes('processing')
-    ) {
+    if (s.includes('out for delivery') || s.includes('in transit')) {
       return {
-        label: s.includes('in transit') ? 'IN TRANSIT' : s.includes('out') ? 'OUT FOR DELIVERY' : 'PROCESSING',
-        color: '#1D4ED8',
+        label: s.includes('in transit') ? 'IN TRANSIT' : 'OUT FOR DELIVERY',
+        color: '#0284C7',
+        bg: '#E0F2FE',
+        border: '#BAE6FD',
+      };
+    }
+    if (s.includes('processing')) {
+      return {
+        label: 'PROCESSING',
+        color: '#2563EB',
         bg: '#DBEAFE',
         border: '#BFDBFE',
       };
     }
-    if (s.includes('confirmed')) {
+    if (s.includes('confirmed') || s.includes('approved') || s.includes('accepted')) {
       return {
-        label: 'CONFIRMED',
-        color: '#15803D',
+        label: (status || 'CONFIRMED').toUpperCase(),
+        color: '#16A34A',
         bg: '#DCFCE7',
         border: '#BBF7D0',
       };
     }
+    if (s.includes('order received') || s.includes('received') || s.includes('placed')) {
+      return {
+        label: 'ORDER RECEIVED',
+        color: '#4F46E5',
+        bg: '#EEF2FF',
+        border: '#C7D2FE',
+      };
+    }
+    if (s.includes('pending') || s.includes('awaiting')) {
+      return {
+        label: 'PENDING',
+        color: '#D97706',
+        bg: '#FFFBEB',
+        border: '#FDE68A',
+      };
+    }
     return {
       label: (status || 'ORDER RECEIVED').toUpperCase(),
-      color: '#B45309',
-      bg: '#FEF3C7',
-      border: '#FDE68A',
+      color: '#475569',
+      bg: '#F1F5F9',
+      border: '#E2E8F0',
     };
   };
 

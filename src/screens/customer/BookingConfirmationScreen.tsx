@@ -751,12 +751,12 @@ export default function BookingConfirmationScreen() {
               ]}
             >
               <Text style={[styles.idBadgeText, { color: isLight ? '#92400E' : '#F5B800' }]}>
-                Booking ID: {bookingId || 'BK-849204'}
+                {isBooking ? 'Booking ID' : 'Order ID'}: {bookingId || (isBooking ? 'BK-849204' : 'ORD-849204')}
               </Text>
             </View>
           </View>
 
-          {/* Booking Details Card */}
+          {/* Booking / Order Details Card */}
           <View
             style={[
               styles.card,
@@ -767,7 +767,7 @@ export default function BookingConfirmationScreen() {
             ]}
           >
             <Text style={[styles.sectionHeading, { color: isLight ? '#64748B' : '#94A3B8' }]}>
-              Booking Details
+              {isBooking ? 'Booking Details' : 'Order Details'}
             </Text>
 
             <View style={[styles.detailRow, { borderBottomColor: isLight ? '#F1EAD8' : 'rgba(255, 255, 255, 0.06)' }]}>
@@ -1024,7 +1024,21 @@ export default function BookingConfirmationScreen() {
                 <Icons.MapPin color="#F5B800" size={18} style={{ marginTop: 2 }} />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text, lineHeight: 18 }}>
-                    {typeof address === 'string' ? address : address.fullAddress || 'Selected Delivery Address'}
+                    {(() => {
+                      if (!address) return 'Selected Delivery Address';
+                      if (typeof address === 'string') {
+                        const cleaned = address.replace(/\[object\s+Object\],?\s*/gi, '').trim();
+                        return cleaned.replace(/^—\s*|,\s*$/g, '') || 'Home Address';
+                      }
+                      if (typeof address === 'object') {
+                        const parts = [address.house, address.street, address.city, address.state, address.pincode]
+                          .map((p: any) => (typeof p === 'string' && !p.includes('[object') ? p.trim() : ''))
+                          .filter(Boolean);
+                        const label = (typeof address.label === 'string' && !address.label.includes('[object')) ? address.label : 'Home';
+                        return parts.length > 0 ? `${label} — ${parts.join(', ')}` : (address.fullAddress || 'Selected Delivery Address');
+                      }
+                      return String(address);
+                    })()}
                   </Text>
                   <Text style={{ fontSize: 11.5, color: isLight ? '#64748B' : '#94A3B8', marginTop: 4 }}>
                     {type === 'stay' ? 'Check-in instructions and booking voucher sent via SMS & email.' : type === 'travel' ? 'Boarding point details and updates sent via SMS.' : 'Estimated delivery updates will be sent via SMS & notification.'}

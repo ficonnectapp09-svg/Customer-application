@@ -373,9 +373,8 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
       var dateNum = String(travelDate.getDate()).padStart(2, '0');
       var month = monthNames[travelDate.getMonth()];
       var year = travelDate.getFullYear();
-      var tag = isTodaySelected ? ' (Today)' : isTomorrowSelected ? ' (Tomorrow)' : '';
-      return `${dayName}, ${dateNum} ${month} ${year}${tag}`;
-    }, [travelDate, isTodaySelected, isTomorrowSelected]);
+      return `${dayName}, ${dateNum} ${month} ${year}`;
+    }, [travelDate]);
     var calendarDays = (0, _react.useMemo)(() => {
       var year = calendarMonth.getFullYear();
       var month = calendarMonth.getMonth();
@@ -1105,6 +1104,7 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
           var normalizeCat = c => String(c || '').trim().toLowerCase().replace(/s$/, '');
           var matchCat = targetMainCat === 'All' || normalizeCat(pCatMapped) === normalizeCat(targetMainCat) || normalizeCat(pCatRaw) === normalizeCat(targetMainCat) || normalizeCat(targetMainCat) === 'product' && (normalizeCat(pCatRaw) === 'product' || normalizeCat(pCatRaw) === 'electronic');
           if (!matchCat) return;
+          if (normalizeCat(targetMainCat) === 'food' && (p.jobType || p.jobLocation || p.candidateResume || String(p.category || '').toLowerCase() === 'it' || String(p.category || '').toLowerCase() === 'non-it' || String(p.subcategory || '').toLowerCase() === 'it' || String(p.subcategory || '').toLowerCase() === 'non-it')) return;
           var pName = p.name || p.product_details || 'Vendor Product';
           var pSubName = p.subCategory || p.subcategory || p.itemType || 'General';
           var pNameLow = pName.toLowerCase();
@@ -1361,6 +1361,7 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
         var categoryName = getMappedCategoryRoute(catKey);
         if (catData.subcategories) {
           Object.keys(catData.subcategories).forEach((subName, sIdx) => {
+            if ((targetMainCat === 'Food' || categoryName === 'Food') && (subName.toLowerCase() === 'it' || subName.toLowerCase() === 'non-it' || subName.toLowerCase().includes('job'))) return;
             var matchSub = isAllSubs || effectiveSubs.some(s => s.toLowerCase() === subName.toLowerCase());
             if (!matchSub) return;
             var subData = catData.subcategories[subName];
@@ -2705,7 +2706,7 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
                 activeOpacity: 0.85,
                 onPress: () => setIsDatePickerOpen(true),
                 children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
-                  style: styles.travelDropdownValueRow,
+                  style: [styles.travelDropdownValueRow, { flex: 1 }],
                   children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Icons.Calendar, {
                     size: 18,
                     color: "#D97706"
@@ -2716,53 +2717,9 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
                     numberOfLines: 1,
                     children: formattedTravelDate
                   })]
-                }), /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
-                  style: {
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 6
-                  },
-                  children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, {
-                    style: {
-                      paddingHorizontal: 10,
-                      paddingVertical: 4,
-                      borderRadius: 8,
-                      backgroundColor: isTodaySelected ? '#F5B800' : isLight ? '#EDF2F7' : 'rgba(255,255,255,0.08)'
-                    },
-                    onPress: e => {
-                      e.stopPropagation();
-                      setTravelDate(new Date());
-                    },
-                    children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-                      style: {
-                        fontSize: 11,
-                        fontWeight: '700',
-                        color: isTodaySelected ? '#0F172A' : isLight ? '#475569' : '#CBD5E1'
-                      },
-                      children: "Today"
-                    })
-                  }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, {
-                    style: {
-                      paddingHorizontal: 10,
-                      paddingVertical: 4,
-                      borderRadius: 8,
-                      backgroundColor: isTomorrowSelected ? '#F5B800' : isLight ? '#EDF2F7' : 'rgba(255,255,255,0.08)'
-                    },
-                    onPress: e => {
-                      e.stopPropagation();
-                      var tmr = new Date();
-                      tmr.setDate(tmr.getDate() + 1);
-                      setTravelDate(tmr);
-                    },
-                    children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-                      style: {
-                        fontSize: 11,
-                        fontWeight: '700',
-                        color: isTomorrowSelected ? '#0F172A' : isLight ? '#475569' : '#CBD5E1'
-                      },
-                      children: "Tomorrow"
-                    })
-                  })]
+                }), /*#__PURE__*/(0, _jsxRuntime.jsx)(Icons.ChevronDown, {
+                  size: 18,
+                  color: isLight ? '#64748B' : '#94A3B8'
                 })]
               })]
             }), /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
@@ -2986,25 +2943,41 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
                 to: 'Chennai',
                 fare: '₹550',
                 duration: '5h 30m',
-                buses: '14+ Buses'
+                buses: `${((apiProducts || []).filter(p => {
+                  var c = String(p.mainCategory || p.category || '').toLowerCase();
+                  var n = String(p.name || '').toLowerCase();
+                  return c === 'travel' || p.busNumber || p.vehicleNumber || n.includes('bus');
+                }).length || 3)} Buses`
               }, {
                 from: 'Chennai',
                 to: 'Bangalore',
                 fare: '₹550',
                 duration: '5h 30m',
-                buses: '14+ Buses'
+                buses: `${((apiProducts || []).filter(p => {
+                  var c = String(p.mainCategory || p.category || '').toLowerCase();
+                  var n = String(p.name || '').toLowerCase();
+                  return c === 'travel' || p.busNumber || p.vehicleNumber || n.includes('bus');
+                }).length || 3)} Buses`
               }, {
                 from: 'Bangalore',
                 to: 'Hyderabad',
                 fare: '₹850',
                 duration: '9h 15m',
-                buses: '10+ Buses'
+                buses: `${((apiProducts || []).filter(p => {
+                  var c = String(p.mainCategory || p.category || '').toLowerCase();
+                  var n = String(p.name || '').toLowerCase();
+                  return c === 'travel' || p.busNumber || p.vehicleNumber || n.includes('bus');
+                }).length || 3)} Buses`
               }, {
                 from: 'Bangalore',
                 to: 'Coimbatore',
                 fare: '₹650',
                 duration: '6h 45m',
-                buses: '8+ Buses'
+                buses: `${((apiProducts || []).filter(p => {
+                  var c = String(p.mainCategory || p.category || '').toLowerCase();
+                  var n = String(p.name || '').toLowerCase();
+                  return c === 'travel' || p.busNumber || p.vehicleNumber || n.includes('bus');
+                }).length || 3)} Buses`
               }].map((item, idx) => /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, {
                 style: [styles.popularRouteCard, {
                   backgroundColor: isLight ? '#FFFFFF' : 'rgba(15, 23, 42, 0.75)',
@@ -3246,60 +3219,6 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
                 children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Icons.X, {
                   color: colors.text,
                   size: 20
-                })
-              })]
-            }), /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
-              style: {
-                flexDirection: 'row',
-                gap: 10,
-                paddingHorizontal: 16,
-                paddingTop: 14
-              },
-              children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, {
-                style: {
-                  flex: 1,
-                  paddingVertical: 9,
-                  borderRadius: 10,
-                  alignItems: 'center',
-                  backgroundColor: isTodaySelected ? '#F5B800' : isLight ? '#F1F5F9' : 'rgba(255,255,255,0.06)',
-                  borderWidth: 1,
-                  borderColor: isTodaySelected ? '#F5B800' : isLight ? '#E2E8F0' : colors.cardBorder
-                },
-                onPress: () => {
-                  setTravelDate(new Date());
-                  setIsDatePickerOpen(false);
-                },
-                children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-                  style: {
-                    fontSize: 13,
-                    fontWeight: '700',
-                    color: isTodaySelected ? '#0F172A' : colors.text
-                  },
-                  children: "Today"
-                })
-              }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, {
-                style: {
-                  flex: 1,
-                  paddingVertical: 9,
-                  borderRadius: 10,
-                  alignItems: 'center',
-                  backgroundColor: isTomorrowSelected ? '#F5B800' : isLight ? '#F1F5F9' : 'rgba(255,255,255,0.06)',
-                  borderWidth: 1,
-                  borderColor: isTomorrowSelected ? '#F5B800' : isLight ? '#E2E8F0' : colors.cardBorder
-                },
-                onPress: () => {
-                  var tmr = new Date();
-                  tmr.setDate(tmr.getDate() + 1);
-                  setTravelDate(tmr);
-                  setIsDatePickerOpen(false);
-                },
-                children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, {
-                  style: {
-                    fontSize: 13,
-                    fontWeight: '700',
-                    color: isTomorrowSelected ? '#0F172A' : colors.text
-                  },
-                  children: "Tomorrow"
                 })
               })]
             }), /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {

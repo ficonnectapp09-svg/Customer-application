@@ -179,9 +179,15 @@ export function buildCategoryHierarchy(rawCategories: any[], _realProducts?: any
 
     const subMap = new Map<string, { id: string; name: string; icon?: string; banner?: string; children: Map<string, ChildCategoryItem> }>();
 
+    const isJobTerm = (s: string) => {
+      const low = String(s || '').trim().toLowerCase();
+      return low === 'it' || low === 'non-it' || low === 'it jobs' || low === 'non-it jobs' || low.includes('job') || low.includes('developer') || low.includes('analyst') || low.includes('administrator');
+    };
+
     const appendItem = (subNameRaw: string, subId?: string, subIcon?: string, subBanner?: string, childItems: any[] = []) => {
       const subName = String(subNameRaw || '').trim();
       if (!subName || normMain(subName) === mainName || subName === 'ALL_SUBCATEGORIES_DELETED_MARKER') return;
+      if (mainName === 'Food' && isJobTerm(subName)) return;
 
       const existingKey = Array.from(subMap.keys()).find(k => k.toLowerCase() === subName.toLowerCase()) || subName;
 
@@ -244,6 +250,8 @@ export function buildCategoryHierarchy(rawCategories: any[], _realProducts?: any
     if (Array.isArray(_realProducts) && _realProducts.length > 0) {
       _realProducts.forEach((p) => {
         if (!p || p.isActive === false || p.isDeleted === true) return;
+        const isJobProduct = Boolean(p.jobType || p.jobLocation || p.candidateResume || isJobTerm(p.name) || isJobTerm(p.category) || isJobTerm(p.subcategory));
+        if (mainName === 'Food' && isJobProduct) return;
         const pMain = normMain(p.mainCategory || p.main_category || p.category || '');
         if (pMain === mainName) {
           const pSub = String(p.category || p.subcategory || '').trim();

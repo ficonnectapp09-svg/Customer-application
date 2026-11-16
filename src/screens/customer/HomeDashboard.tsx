@@ -1601,7 +1601,7 @@ export default function HomeDashboard() {
               </Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('CustomerTabs', { screen: 'Categories' })}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#F5B51B' }}>{t('view_all')} →</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#F5B51B' }}>{t('view_all')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -1670,7 +1670,7 @@ export default function HomeDashboard() {
                       <View
                         style={{
                           width: '100%',
-                          height: 122,
+                          height: 128,
                           backgroundColor: isLightActive ? '#F8FAFC' : '#071326',
                           position: 'relative',
                           overflow: 'hidden',
@@ -1751,7 +1751,7 @@ export default function HomeDashboard() {
                       </View>
 
                       {/* Bottom Details Section */}
-                      <View style={{ padding: 9, paddingTop: 7 }}>
+                      <View style={{ padding: 9, paddingTop: 7, minHeight: 84, justifyContent: 'space-between' }}>
                         <Text style={{ fontSize: 13, fontWeight: '800', color: colors.text }} numberOfLines={1}>
                           {prod.name}
                         </Text>
@@ -1810,7 +1810,7 @@ export default function HomeDashboard() {
               <Text style={[styles.sectionHeader, { color: colors.text, fontSize: 16.5, fontWeight: '800' }]}>{t('picked_for_you')}</Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('CustomerTabs', { screen: 'Categories' })}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#F5B51B' }}>{t('view_all')} →</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#F5B51B' }}>{t('view_all')}</Text>
             </TouchableOpacity>
           </View>
 

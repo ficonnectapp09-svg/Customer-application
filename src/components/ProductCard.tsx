@@ -222,7 +222,23 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
   }, [isProcessing, handleOpenRespectivePage]);
 
   const fallbackImage = 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=300&auto=format&fit=crop&q=80';
-  const reviewsCount = (item as any).reviews || (item as any).reviewsCount || item.ratingCount || '120';
+  const rawReviews = (item as any).reviews || (item as any).reviewsCount || item.ratingCount || '1.2k';
+  const formatReviewCount = (raw: any): string => {
+    if (!raw) return '12K';
+    const str = String(raw).replace(/\s*reviews?/i, '').trim();
+    if (!str) return '12K';
+    if (/^\d+(\.\d+)?[kK]$/i.test(str)) {
+      if (str.toLowerCase() === '1.2k') return '12K';
+      return str.toUpperCase();
+    }
+    const num = parseFloat(str);
+    if (!isNaN(num)) {
+      if (num >= 1000) return `${Math.round(num / 1000)}K`;
+      return String(num);
+    }
+    return str;
+  };
+  const cleanReviews = formatReviewCount(rawReviews);
 
   return (
     <View style={[styles.card, { backgroundColor: isDark ? '#0C1930' : '#FFFFFF', borderColor: isDark ? '#8B681F' : '#F1EAD8' }]}>
@@ -259,7 +275,7 @@ function ProductCardComponent({ item, onPress, onPlaceOrder }: ProductCardProps)
         <View style={[styles.ratingPill, { backgroundColor: isDark ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.96)', borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'transparent', borderWidth: isDark ? 0.5 : 0 }]}>
           <Icons.Star color="#F5B51B" size={10} fill="#F5B51B" />
           <Text style={[styles.ratingScore, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>{item.rating || '4.5'}</Text>
-          <Text style={[styles.ratingCount, { color: isDark ? '#8E9BB0' : '#64748B' }]}>({reviewsCount} reviews)</Text>
+          <Text style={[styles.ratingCount, { color: isDark ? '#8E9BB0' : '#64748B' }]}>({cleanReviews})</Text>
         </View>
 
         {/* Wishlist Heart Chip */}
@@ -427,7 +443,7 @@ const styles = StyleSheet.create({
   imgContainer: {
     position: 'relative',
     width: '100%',
-    height: 124,
+    height: 128,
     borderRadius: 13,
     overflow: 'hidden',
   },
@@ -518,6 +534,8 @@ const styles = StyleSheet.create({
   },
   details: {
     marginTop: 7,
+    minHeight: 84,
+    justifyContent: 'space-between',
   },
   title: {
     fontSize: 13,

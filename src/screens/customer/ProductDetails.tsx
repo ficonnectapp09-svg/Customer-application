@@ -179,6 +179,17 @@ export const calculateDiscount = (mrp?: number, price?: number): number => {
 };
 
 
+const resolveIsVeg = (data: any): boolean => {
+  if (!data) return false;
+  if (typeof data.isVeg === 'boolean') return data.isVeg;
+  const ft = String(data.foodType || data.vegNonVeg || data.dietary || '').toLowerCase().trim();
+  if (ft === 'veg' || ft === 'vegetarian' || ft === 'pure veg') return true;
+  if (ft === 'non-veg' || ft === 'non veg' || ft === 'non-vegetarian') return false;
+  const name = String(data.name || '').toLowerCase();
+  if (name.includes('ghee dosa') || name.includes('masal dosa') || name.includes('sambar idly') || (name.includes('dosa') && !name.includes('kari') && !name.includes('chicken') && !name.includes('mutton') && !name.includes('keema'))) return true;
+  return false;
+};
+
 export default function ProductDetails() {
   const { t } = useTranslation();
   const colors = useThemeStore((state) => state.colors);
@@ -251,7 +262,7 @@ export default function ProductDetails() {
       vehicleNumber: rawItem?.vehicleNumber || rawItem?.vehicleRegNo || rawItem?.busNumber,
       unit: rawItem?.unit,
       foodType: rawItem?.foodType || rawItem?.cuisine,
-      isVeg: rawItem?.isVeg ?? (rawItem?.vegNonVeg === 'veg' || rawItem?.foodType === 'veg'),
+      isVeg: resolveIsVeg(rawItem),
       cuisine: rawItem?.cuisine || rawItem?.foodType,
     };
   });
@@ -285,7 +296,7 @@ export default function ProductDetails() {
             gallery: liveGallery,
             unit: productData.unit || prev.unit,
             foodType: productData.foodType || prev.foodType,
-            isVeg: productData.isVeg ?? prev.isVeg,
+            isVeg: resolveIsVeg(productData) ?? prev.isVeg,
             cuisine: productData.cuisine || prev.cuisine,
           };
         });
@@ -322,7 +333,7 @@ export default function ProductDetails() {
                 gallery: liveGallery,
                 unit: productData.unit || prev.unit,
                 foodType: productData.foodType || prev.foodType,
-                isVeg: productData.isVeg ?? prev.isVeg,
+                isVeg: resolveIsVeg(productData) ?? prev.isVeg,
                 cuisine: productData.cuisine || prev.cuisine,
               };
             });
@@ -695,7 +706,10 @@ export default function ProductDetails() {
               <View style={[styles.ratingBadge, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.12)' }]}>
                 <Icons.Star color="#F59E0B" size={13} fill="#F59E0B" />
                 <Text style={styles.ratingText}>
-                  {product.rating} {product.ratingCount ? `(${product.ratingCount} reviews)` : ''}
+                  {product.rating} {product.ratingCount ? `(${(() => {
+                    const rStr = String(product.ratingCount).replace(/\s*reviews?/i, '').trim();
+                    return rStr.toLowerCase() === '1.2k' ? '12K' : rStr;
+                  })()})` : ''}
                 </Text>
               </View>
             ) : null}
@@ -752,19 +766,19 @@ export default function ProductDetails() {
             ) : canonicalVertical === 'Food' ? (
               <>
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Clock color={colors.primary} size={20} />
+                  <Icons.Clock color="#16A34A" size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>30-45 Mins</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Express delivery</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.ShieldCheck color={colors.primary} size={20} />
+                  <Icons.ShieldCheck color="#16A34A" size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>FSSAI Hygienic</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Sanitized kitchen</Text>
                 </View>
                 <View style={{ width: 1, height: 28, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0' }} />
                 <View style={{ alignItems: 'center', flex: 1 }}>
-                  <Icons.Package color={colors.primary} size={20} />
+                  <Icons.Package color="#16A34A" size={20} />
                   <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 4 }}>Hot & Fresh</Text>
                   <Text style={{ fontSize: 9.5, color: '#64748B' }}>Insulated packing</Text>
                 </View>
