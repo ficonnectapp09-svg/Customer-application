@@ -247,34 +247,34 @@ export default function CustomerOrders() {
         '1–3 yrs';
 
       // Applicant Details
-      const candidateName = order.customer_name || 'Applicant';
-      const candidatePhone = order.customer_phone || '';
-      const candidateEmail = order.applicant_email || (order as any).email || currentUser?.email || '';
+      const candidateName = order.customer_name || (order as any).candidateName || (order as any).applicantName || 'Applicant';
+      const candidatePhone = order.customer_phone || (order as any).candidatePhone || (order as any).phone || '';
+      const candidateEmail = order.applicant_email || (order as any).candidateEmail || (order as any).email || currentUser?.email || '';
 
-      let resumeName = order.resume_name || '';
+      let resumeName = order.resume_name || (order as any).candidateResume || '';
       if (!resumeName && order.customer_address) {
-        const match = order.customer_address.match(/Resume:\s*([^\s•]+(?:\.[a-zA-Z0-9]+)?)/i);
+        const match = order.customer_address.match(/Resume:\s*([^\s•·\u2022\u00b7]+(?:\.[a-zA-Z0-9]+)?)/i);
         if (match) resumeName = match[1];
       }
       if (!resumeName) resumeName = 'Applicant_Resume.pdf';
 
-      let education = order.applicant_education || '';
+      let education = order.applicant_education || (order as any).candidateEducation || '';
       if (!education && order.customer_address) {
-        const parts = order.customer_address.split('•');
+        const parts = order.customer_address.split(/[•·\u2022\u00b7]|â€¢/);
         if (parts.length > 0 && !parts[0].includes('Resume:')) {
           education = parts[0].trim();
         }
       }
       if (!education) education = matchedJob?.qualification || 'Degree / Professional';
 
-      let applicantExp = order.applicant_experience || '';
+      let applicantExp = order.applicant_experience || (order as any).candidateExperience || (order as any).experience || '';
       if (!applicantExp && order.customer_address) {
-        const parts = order.customer_address.split('•');
+        const parts = order.customer_address.split(/[•·\u2022\u00b7]|â€¢/);
         if (parts.length > 1 && !parts[1].includes('Resume:')) {
           applicantExp = parts[1].trim();
         }
       }
-      if (!applicantExp) applicantExp = experience;
+      if (!applicantExp) applicantExp = experience || '1–3 yrs';
 
       const isJobDeleted = !matchedJob || matchedJob.isActive === false || matchedJob.isDeleted === true || matchedJob.status === 'deleted' || matchedJob.status === 'Inactive';
       const companyWebsite = matchedJob?.companyWebsite || matchedJob?.linkedProfileUrl || (order as any).companyWebsite || '';
@@ -765,11 +765,18 @@ export default function CustomerOrders() {
   };
 
   // Status Badge Colors & Info
-  const getStatusMeta = (status: string) => {
+  const getStatusMeta = (status: string, order?: Order) => {
     const s = (status || '').toLowerCase().trim();
+    const isBooking = Boolean(
+      order?.order_type === 'booking' ||
+      (order && ['Services', 'Stay', 'Travel'].includes(normalizeOrderCategory(order))) ||
+      selectedTopTab === 'My Bookings' ||
+      (order?.id || '').startsWith('BKG') || (order?.order_number || '').startsWith('BKG') ||
+      Boolean((order as any)?.checkInDate) || Boolean((order as any)?.appointmentDate)
+    );
     if (isCompletedStatus(status)) {
       return {
-        label: (status || 'DELIVERED').toUpperCase(),
+        label: isBooking ? (s.includes('complete') ? 'BOOKING COMPLETED' : 'CONFIRMED') : (status || 'DELIVERED').toUpperCase(),
         color: '#059669',
         bg: '#D1FAE5',
         border: '#A7F3D0',
@@ -777,7 +784,7 @@ export default function CustomerOrders() {
     }
     if (isCancelledStatus(status)) {
       return {
-        label: 'CANCELLED',
+        label: isBooking ? 'BOOKING CANCELLED' : 'CANCELLED',
         color: '#DC2626',
         bg: '#FEE2E2',
         border: '#FECACA',
@@ -793,7 +800,7 @@ export default function CustomerOrders() {
     }
     if (s.includes('processing')) {
       return {
-        label: 'PROCESSING',
+        label: isBooking ? 'CONFIRMING' : 'PROCESSING',
         color: '#2563EB',
         bg: '#DBEAFE',
         border: '#BFDBFE',
@@ -807,24 +814,32 @@ export default function CustomerOrders() {
         border: '#BBF7D0',
       };
     }
+    if (s.includes('booking received') || (isBooking && (s.includes('received') || s.includes('placed')))) {
+      return {
+        label: 'BOOKING RECEIVED',
+        color: '#0284C7',
+        bg: '#E0F2FE',
+        border: '#BAE6FD',
+      };
+    }
     if (s.includes('order received') || s.includes('received') || s.includes('placed')) {
       return {
-        label: 'ORDER RECEIVED',
-        color: '#4F46E5',
-        bg: '#EEF2FF',
-        border: '#C7D2FE',
+        label: isBooking ? 'BOOKING RECEIVED' : 'ORDER RECEIVED',
+        color: isBooking ? '#0284C7' : '#4F46E5',
+        bg: isBooking ? '#E0F2FE' : '#EEF2FF',
+        border: isBooking ? '#BAE6FD' : '#C7D2FE',
       };
     }
     if (s.includes('pending') || s.includes('awaiting')) {
       return {
-        label: 'PENDING',
+        label: isBooking ? 'BOOKING PENDING' : 'PENDING',
         color: '#D97706',
         bg: '#FFFBEB',
         border: '#FDE68A',
       };
     }
     return {
-      label: (status || 'ORDER RECEIVED').toUpperCase(),
+      label: (isBooking && (!status || s.includes('received')) ? 'BOOKING RECEIVED' : (status || 'ORDER RECEIVED')).toUpperCase(),
       color: '#475569',
       bg: '#F1F5F9',
       border: '#E2E8F0',
@@ -855,21 +870,20 @@ export default function CustomerOrders() {
       return 'Jobs';
     }
 
-    // 2. Authoritative Services / Home Services / Appointments
+    // 2. Authoritative Stay / Hotel / Resort
     if (
-      rawCat === 'Services' || rawCat === 'Service' || rawCat === 'Home Services' ||
-      rawType === 'Services' || rawType === 'Service' || rawType === 'Home Services' ||
-      rawBookingType === 'service' || rawBookingType === 'services' ||
-      rawCat.toLowerCase() === 'services' || rawCat.toLowerCase() === 'service' || rawCat.toLowerCase() === 'home services' ||
-      rawType.toLowerCase() === 'services' || rawType.toLowerCase() === 'service' || rawType.toLowerCase() === 'home services' ||
-      ['healthcare', 'automobile', 'education', 'financial', 'legal', 'it/digital'].includes(rawCat.toLowerCase()) ||
-      ['healthcare', 'automobile', 'education', 'financial', 'legal', 'it/digital'].includes(rawType.toLowerCase()) ||
-      Boolean((order as any).appointment_slot) || Boolean((order as any).appointmentDate) || Boolean((order as any).appointmentTimeSlot) ||
-      rawNum.startsWith('SRV-') ||
-      (/\b(electrician|plumber|plumbers|carpenter|carpenters|cleaning|salon|healthcare|doctor|appliance|pest control|service & jet wash|jet wash|home service|mechanic|painter|technician)\b/i.test(details) && !['stay', 'travel', 'bus', 'flight'].includes(rawCat.toLowerCase())) ||
-      (/\b(electrician|plumber|plumbers|carpenter|carpenters|cleaning|salon|healthcare|doctor|appliance|pest control|service & jet wash|jet wash|home service|mechanic|painter|technician)\b/i.test(anyItemName) && !['stay', 'travel', 'bus', 'flight'].includes(rawCat.toLowerCase()))
+      rawCat === 'Stay' || rawCat.toLowerCase() === 'stay' || rawCat.toLowerCase() === 'hotel' || rawCat.toLowerCase() === 'resort' ||
+      rawType === 'Stay' || rawType.toLowerCase() === 'stay' || rawType.toLowerCase() === 'hotel' || rawType.toLowerCase() === 'resort' ||
+      rawBookingType === 'stay' || rawBookingType === 'hotel' || rawBookingType === 'resort' ||
+      Boolean((order as any).checkInDate) || Boolean((order as any).check_in) ||
+      Boolean((order as any).checkOutDate) || Boolean((order as any).check_out) ||
+      Boolean((order as any).hotel_name) || Boolean((order as any).roomsCount) ||
+      firstItemCat.toLowerCase() === 'viila' || firstItemCat.toLowerCase() === 'villa' || firstItemCat.toLowerCase() === 'resort' || firstItemCat.toLowerCase() === 'hotel' ||
+      anyItemCat.includes('villa') || anyItemCat.includes('viila') || anyItemCat.includes('resort') || anyItemCat.includes('hotel') ||
+      /\b(villa|viila|resort|hotel|deluxe room|room stay|night stay|nights? stay)\b/i.test(details) ||
+      /\b(villa|viila|resort|hotel|deluxe room)\b/i.test(anyItemName)
     ) {
-      return 'Services';
+      return 'Stay';
     }
 
     // 3. Authoritative Travel / Bus / Transport
@@ -887,18 +901,21 @@ export default function CustomerOrders() {
       return 'Travel';
     }
 
-    // 4. Authoritative Stay / Hotel / Resort
+    // 4. Authoritative Services / Home Services / Appointments
     if (
-      rawCat === 'Stay' || rawCat.toLowerCase() === 'stay' || rawCat.toLowerCase() === 'hotel' || rawCat.toLowerCase() === 'resort' ||
-      rawType === 'Stay' || rawType.toLowerCase() === 'stay' || rawType.toLowerCase() === 'hotel' || rawType.toLowerCase() === 'resort' ||
-      rawBookingType === 'stay' || rawBookingType === 'hotel' || rawBookingType === 'resort' ||
-      firstItemCat.toLowerCase() === 'viila' || firstItemCat.toLowerCase() === 'villa' || firstItemCat.toLowerCase() === 'resort' || firstItemCat.toLowerCase() === 'hotel' ||
-      anyItemCat.includes('villa') || anyItemCat.includes('viila') || anyItemCat.includes('resort') || anyItemCat.includes('hotel') ||
-      Boolean((order as any).hotel_name) ||
-      /\b(villa|viila|resort|hotel|deluxe room|room stay|night stay|nights? stay)\b/i.test(details) ||
-      /\b(villa|viila|resort|hotel|deluxe room)\b/i.test(anyItemName)
+      rawCat === 'Services' || rawCat === 'Service' || rawCat === 'Home Services' ||
+      rawType === 'Services' || rawType === 'Service' || rawType === 'Home Services' ||
+      rawBookingType === 'service' || rawBookingType === 'services' ||
+      rawCat.toLowerCase() === 'services' || rawCat.toLowerCase() === 'service' || rawCat.toLowerCase() === 'home services' ||
+      rawType.toLowerCase() === 'services' || rawType.toLowerCase() === 'service' || rawType.toLowerCase() === 'home services' ||
+      ['healthcare', 'automobile', 'education', 'financial', 'legal', 'it/digital'].includes(rawCat.toLowerCase()) ||
+      ['healthcare', 'automobile', 'education', 'financial', 'legal', 'it/digital'].includes(rawType.toLowerCase()) ||
+      Boolean((order as any).appointment_slot) || Boolean((order as any).appointmentDate) || Boolean((order as any).appointmentTimeSlot) ||
+      rawNum.startsWith('SRV-') ||
+      (/\b(electrician|plumber|plumbers|carpenter|carpenters|cleaning|salon|healthcare|doctor|appliance|pest control|service & jet wash|jet wash|home service|mechanic|painter|technician)\b/i.test(details) && !['stay', 'travel', 'bus', 'flight'].includes(rawCat.toLowerCase()) && !['stay', 'travel', 'bus', 'flight'].includes(rawType.toLowerCase())) ||
+      (/\b(electrician|plumber|plumbers|carpenter|carpenters|cleaning|salon|healthcare|doctor|appliance|pest control|service & jet wash|jet wash|home service|mechanic|painter|technician)\b/i.test(anyItemName) && !['stay', 'travel', 'bus', 'flight'].includes(rawCat.toLowerCase()) && !['stay', 'travel', 'bus', 'flight'].includes(rawType.toLowerCase()))
     ) {
-      return 'Stay';
+      return 'Services';
     }
 
     // 5. Food & Dining
@@ -2588,7 +2605,7 @@ export default function CustomerOrders() {
   // Dedicated Bus Ticket / Boarding Pass Card for Bus Bookings
   const renderBusTicketCard = (order: Order, customKey?: string) => {
     const busInfo = getResolvedBusInfo(order);
-    const statusMeta = getStatusMeta(order.status);
+    const statusMeta = getStatusMeta(order.status, order);
     const isCancelled = isCancelledStatus(order.status);
     const cardKey = customKey || `bus_order_${order.id || order.order_number || Math.random()}`;
 
@@ -2923,7 +2940,7 @@ export default function CustomerOrders() {
   // Dedicated Service Booking Card (Per Section 3A Requirements)
   const renderServiceBookingCard = (order: Order, customKey?: string) => {
     const sInfo = getResolvedServiceInfo(order);
-    const statusMeta = getStatusMeta(order.status);
+    const statusMeta = getStatusMeta(order.status, order);
     const isCancelled = isCancelledStatus(order.status);
     const cardKey = customKey || `srv_booking_${order.id || order.order_number || Math.random()}`;
 
@@ -3228,7 +3245,7 @@ export default function CustomerOrders() {
   // Dedicated Stay Booking Card (Per Section 3B Requirements)
   const renderStayBookingCard = (order: Order, customKey?: string) => {
     const o = order as any;
-    const statusMeta = getStatusMeta(order.status);
+    const statusMeta = getStatusMeta(order.status, order);
     const isCancelled = isCancelledStatus(order.status);
     const cardKey = customKey || `stay_booking_${order.id || order.order_number || Math.random()}`;
 
@@ -3516,7 +3533,7 @@ export default function CustomerOrders() {
     }
     const categoryMeta = getCategoryMeta(order);
     const CategoryIcon = categoryMeta.icon;
-    const statusMeta = getStatusMeta(order.status);
+    const statusMeta = getStatusMeta(order.status, order);
     const isCancelled = isCancelledStatus(order.status);
     const isCompleted = isCompletedStatus(order.status);
     const isActive = isActiveStatus(order.status);
@@ -4827,7 +4844,7 @@ export default function CustomerOrders() {
                   {/* Dedicated Bus Ticket / Boarding Pass Sheet */}
                   {(() => {
                     const busInfo = getResolvedBusInfo(selectedOrderForDetails);
-                    const statusMeta = getStatusMeta(selectedOrderForDetails.status);
+                    const statusMeta = getStatusMeta(selectedOrderForDetails.status, selectedOrderForDetails);
                     const isCancelled = isCancelledStatus(selectedOrderForDetails.status);
 
                     return (
@@ -5361,7 +5378,7 @@ export default function CustomerOrders() {
                   {/* Dedicated Doorstep Service Booking Sheet */}
                   {(() => {
                     const sInfo = getResolvedServiceInfo(selectedOrderForDetails);
-                    const statusMeta = getStatusMeta(selectedOrderForDetails.status);
+                    const statusMeta = getStatusMeta(selectedOrderForDetails.status, selectedOrderForDetails);
                     const isCancelled = isCancelledStatus(selectedOrderForDetails.status);
                     const isCompleted = isCompletedStatus(selectedOrderForDetails.status);
                     const rawStatus = (selectedOrderForDetails.status || '').toLowerCase();
@@ -6158,7 +6175,7 @@ export default function CustomerOrders() {
                   {/* Dedicated Stay Reservation Booking Sheet (Per Section 3B Requirements) */}
                   {(() => {
                     const o = selectedOrderForDetails as any;
-                    const statusMeta = getStatusMeta(selectedOrderForDetails.status);
+                    const statusMeta = getStatusMeta(selectedOrderForDetails.status, selectedOrderForDetails);
                     const isCancelled = isCancelledStatus(selectedOrderForDetails.status);
                     const isCompleted = isCompletedStatus(selectedOrderForDetails.status);
                     const stayName = o.hotel_name || o.stay_name || o.product_details?.split('(')[0]?.trim() || o.items?.[0]?.name || 'Luxury Stay';

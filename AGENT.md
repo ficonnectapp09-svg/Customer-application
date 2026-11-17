@@ -150,3 +150,78 @@ Future agents working on this repository **MUST** strictly preserve the followin
    - **My Bookings (4 records)**: `ORD3906`, `ORD3960`, `ORD1379`, `ORD2283`.
    - **Job Applied (1 record)**: `JOB6279`.
    - Total: 13 real records segregated with zero cross-tab leakage.
+
+---
+
+## 4. CRITICAL RULE – CUSTOMER MOBILE APPLICATION WORKFLOW PROTECTION
+
+All future autonomous agents and engineers working on the Customer Mobile Application (`D:\Connect App Project\Application\Connect-Mobile`) **MUST** strictly comply with the following 18 permanent workflow protection rules:
+
+1. **Authentication & Session Persistence**:
+   - Customer session tokens, refresh tokens, and user profile metadata stored in `connect_app_auth_storage` (AsyncStorage) must be permanently retained across application cold restarts, orientation shifts, and network reconnections. Never clear or reset session state without explicit user logout action.
+
+2. **Cross-Platform Real-Time Synchronization**:
+   - Customer actions performed on Mobile (orders, bookings, cart updates, address additions, profile updates) must synchronize with the Customer Website in real time via WebSockets and REST cache invalidation without requiring manual browser or app refresh.
+
+3. **Strict Indian Mobile Number Validation**:
+   - All mobile input fields across Authentication (`Login.tsx`, `JoinNow.tsx`), Checkout (`CheckoutScreen.tsx`), Stay Booking (`StayDetails.tsx`), Travel Booking (`CategoryDetails.tsx`), and Job Applications (`JobDetailsScreen.tsx`) must strictly enforce 10 digits starting with `[6-9]` via `isValidIndianMobile(phone)` from `src/utils/validation.ts`. Never allow partial digits or non-Indian prefix numbers.
+
+4. **Universal Dark Mode Contrast & Legibility**:
+   - Dark mode styles must guarantee high-contrast, fully readable text across all screens, modals, cards, badges, and review symbols. Text must dynamically adapt (`colors.text`, `#FFFFFF`, `#F8FAFC` in Dark Mode vs `#0F172A` in Light Mode). Never hardcode white background cards without adjusting nested text colors.
+
+5. **Stay & Room Guest Capacity Hard Limits**:
+   - Counter controls for Adults and Children in `StayDetails.tsx` must strictly enforce the maximum property and room capacity limit (`maxAllowedGuests`). Increment buttons must disable when `adultsCount + childrenCount >= maxAllowedGuests` and show clear warning alerts to prevent over-booking.
+
+6. **Order & Booking Three-Way Segregation**:
+   - Order history in `CustomerOrders.tsx` and `orderStore.ts` must maintain strict 3-way classification:
+     - **My Orders**: Only physical goods (`Products`, `Daily Needs`, `Food`).
+     - **My Bookings**: Only service reservations (`Services`, `Stay`, `Travel`).
+     - **Job Applied**: Only recruitment applications (`Jobs`).
+   - Bookings must display status badge `"BOOKING RECEIVED"` instead of `"ORDER RECEIVED"`.
+
+7. **Clean Applicant Details Parsing**:
+   - Job applicant details (candidate name, education, experience, phone, email, resume) extracted from `order.customer_address` or order metadata must cleanly strip delimiter bullets (`\u2022`, `•`, `·`, `â€¢`) using robust regex matching without rendering encoding artifacts or mojibake in the UI.
+
+8. **Category Taxonomy & Subcategory Integrity**:
+   - The category catalog in `Categories.tsx` and `CategoryDetails.tsx` must permanently maintain essential subcategory classifications:
+     - `Products`: Must always provide `Electronics`, `Furniture`, `Toys`, `Stationary`.
+     - `Services`: Must always provide `Plumbers`, `Electrician`, `Electronic services`.
+     - `Daily Needs`: Must always provide `Groceries`, `Diary` (Dairy), `Fruits & Vegetables`.
+     - `Food`: Must always provide `Biryani`, `South Indian`, `Chinese`, `Desserts`.
+
+9. **Travel Category Listing Direct Navigation**:
+   - Tapping the Travel category tile or booking banner must navigate directly to the comprehensive Travel Listings screen (`CategoryDetails.tsx` with `categoryName: 'Travel'`) displaying all available buses, cabs, routes, pricing, and filters, without bypassing or skipping listings.
+
+10. **Non-Intrusive GPS Route Simulation & Layout Separation**:
+    - Live order route tracking in `LiveTracking.tsx` must keep GPS simulation paused by default. The top ETA badge (`floatingEtaCard`) must be positioned at `top: 12` to completely avoid visual collision with `MapComponent.tsx`'s bottom metrics card (`bottom: 12`).
+
+11. **Safe Fallback Defaults for Catalog Data**:
+    - Components must safely handle undefined, null, or missing backend properties for hotel names, room details, travel routes, amenities, and vendor identifiers using safe fallback chains to eliminate crashes or blank views.
+
+12. **Authoritative Database Protection Invariant**:
+    - Zero modification, deletion, clearing, reset, or schema migration on the MongoDB database (`connect_db`) without explicit user permission. Production and staging records must never be altered or overwritten by automated scripts.
+
+13. **Strict Multi-App Isolation**:
+    - Under no circumstances should code, configuration, or assets belonging to the Vendor App (`com.vendormobile`), Manager App (`com.ficmanagerapp`), Agent App, or Admin portals be modified, bundled, or affected during Customer Mobile updates.
+
+14. **Preservation of All Payment Gateways**:
+    - All existing payment flows (Razorpay Online, Cash on Delivery, Pay at Hotel) must remain intact with their respective order metadata, transaction logging, and inventory confirmation routines.
+
+15. **Seamless Address Management in Checkout**:
+    - The Checkout screen (`CheckoutScreen.tsx`) must preserve address selection, inline new address creation, phone number validation, and default address persistence without resetting cart contents.
+
+16. **User-Friendly Non-Blocking Error Alerts**:
+    - System exceptions, network timeouts, or validation rejections must display clean, styled toast banners or native alerts explaining the exact remedy rather than crashing or hanging silently.
+
+17. **Theme-Aware Review Stars & Rating Indicators**:
+    - Rating chips, star icons, and review counts must render with dynamic contrast (`#F59E0B` / `#F5B800` stars with high-contrast text) across both Light and Dark themes.
+
+18. **Production Build & Emulator Verification Invariant**:
+    - Every modification must be validated with `npx tsc --noEmit` (0 compilation errors), compiled into an Android Release APK (`assembleRelease -x lint`), installed via `adb install -r`, and verified on the Android emulator with screencaps before task sign-off.
+
+19. **Complete Dynamic 3-Level Category Taxonomy Invariant**:
+    - The application must always dynamically resolve and render all three levels of category taxonomy: Level 1 (Main Category) → Level 2 (Subcategory) → Level 3 (Child Category).
+    - When a customer selects any Level 2 subcategory (e.g. `Electronics`, `Furniture`, `Plumbers`, `Electrician`, `Diary`, `Groceries`, `South Indian`), all applicable Level 3 child categories must dynamically display in a horizontal pill row immediately below the subcategory chips without hardcoding.
+    - Selecting a Level 3 child category pill must strictly filter and display only products/services matching that specific child category across `itemType`, `childCategory`, `subSubcategory`, `subcategory`, `name`, and `desc`.
+    - Subcategories with 0 child categories (e.g., `Toys`, `Stationary`) must gracefully hide the child pill row without empty space or layout artifacts.
+    - All category mappings must derive dynamically from MongoDB via `/categories`, `getCachedHierarchy()`, and `SIDEBAR_DATA`.

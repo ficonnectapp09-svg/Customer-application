@@ -28,7 +28,8 @@ export default function CustomerNotifications() {
   const insets = useSafeAreaInsets();
   const colors = useThemeStore((state) => state.colors);
   const themeMode = useThemeStore((state) => state.themeMode);
-  const isLight = themeMode === 'light' || colors.background !== '#050B1E';
+  const isDark = useThemeStore((state) => state.isDark);
+  const isLight = !isDark;
 
   const notifications = useNotificationStore((state) => state.notifications);
   const unreadCount = useNotificationStore((state) => state.unreadCount);

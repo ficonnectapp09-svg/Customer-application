@@ -29,6 +29,7 @@ import { prepareRazorpayOrder } from '../../services/razorpayService';
 import { RAZORPAY_KEY_ID } from '../../services/env';
 import { useTranslation } from '../../store/languageStore';
 import { dispatchCustomerNotification } from '../../services/notificationService';
+import { isValidIndianMobile } from '../../utils/validation';
 
 // Guest Information interface for each person travelling
 export interface GuestInfo {
@@ -1148,61 +1149,84 @@ export default function StayDetails() {
                   </View>
 
                   {/* --- 3. TRAVELERS / GUESTS --- */}
-                  <View style={[styles.configCard, { borderColor: '#E2E8F0' }]}>
-                    <Text style={styles.travelersCardTitle}>TRAVELERS / GUESTS</Text>
-
-                    <View style={styles.travelersCardsRow}>
-                      {/* Adults Card */}
-                      <View style={styles.travelerCategoryCard}>
-                        <View>
-                          <Text style={styles.travelerCategoryName}>Adults</Text>
-                          <Text style={styles.travelerCategoryAge}>Age 12+</Text>
+                  {(() => {
+                    const maxAllowedGuests = Number(stay.guests || stay.maxGuests || stay.capacity || (stay as any).guestCount || (selectedRoom as any)?.capacity || 4);
+                    const isMaxReached = adultsCount + childrenCount >= maxAllowedGuests;
+                    return (
+                      <View style={[styles.configCard, { borderColor: isLight ? '#E2E8F0' : colors.cardBorder, backgroundColor: isLight ? '#FFFFFF' : 'rgba(255, 255, 255, 0.03)' }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                          <Text style={[styles.travelersCardTitle, { color: colors.text }]}>TRAVELERS / GUESTS</Text>
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: isMaxReached ? '#EF4444' : '#F5B800' }}>
+                            Max: {maxAllowedGuests} Guests ({adultsCount + childrenCount}/{maxAllowedGuests})
+                          </Text>
                         </View>
-                        <View style={styles.stepperPillWrap}>
-                          <TouchableOpacity
-                            style={styles.stepperBtnRef}
-                            onPress={() => setAdultsCount((prev) => Math.max(1, prev - 1))}
-                          >
-                            <Text style={styles.stepperBtnRefText}>-</Text>
-                          </TouchableOpacity>
-                          <Text style={styles.stepperCountRefText}>{adultsCount}</Text>
-                          <TouchableOpacity
-                            style={styles.stepperBtnRef}
-                            onPress={() => setAdultsCount((prev) => Math.min(10, prev + 1))}
-                          >
-                            <Text style={styles.stepperBtnRefText}>+</Text>
-                          </TouchableOpacity>
+
+                        <View style={styles.travelersCardsRow}>
+                          {/* Adults Card */}
+                          <View style={[styles.travelerCategoryCard, { backgroundColor: isLight ? '#F8FAFC' : 'rgba(255,255,255,0.04)', borderColor: isLight ? '#E2E8F0' : colors.cardBorder }]}>
+                            <View>
+                              <Text style={[styles.travelerCategoryName, { color: colors.text }]}>Adults</Text>
+                              <Text style={[styles.travelerCategoryAge, { color: isLight ? '#64748B' : '#94A3B8' }]}>Age 12+</Text>
+                            </View>
+                            <View style={[styles.stepperPillWrap, { backgroundColor: isLight ? '#FFFFFF' : 'rgba(255,255,255,0.08)', borderColor: isLight ? '#CBD5E1' : colors.cardBorder }]}>
+                              <TouchableOpacity
+                                style={styles.stepperBtnRef}
+                                onPress={() => setAdultsCount((prev) => Math.max(1, prev - 1))}
+                              >
+                                <Text style={[styles.stepperBtnRefText, { color: colors.text }]}>-</Text>
+                              </TouchableOpacity>
+                              <Text style={[styles.stepperCountRefText, { color: colors.text }]}>{adultsCount}</Text>
+                              <TouchableOpacity
+                                style={[styles.stepperBtnRef, isMaxReached && { opacity: 0.4 }]}
+                                onPress={() => {
+                                  if (adultsCount + childrenCount >= maxAllowedGuests) {
+                                    Alert.alert('Capacity Reached', `Maximum room capacity is ${maxAllowedGuests} guest${maxAllowedGuests > 1 ? 's' : ''}.`);
+                                    return;
+                                  }
+                                  setAdultsCount((prev) => prev + 1);
+                                }}
+                              >
+                                <Text style={[styles.stepperBtnRefText, { color: colors.text }]}>+</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+
+                          {/* Children Card */}
+                          <View style={[styles.travelerCategoryCard, { backgroundColor: isLight ? '#F8FAFC' : 'rgba(255,255,255,0.04)', borderColor: isLight ? '#E2E8F0' : colors.cardBorder }]}>
+                            <View>
+                              <Text style={[styles.travelerCategoryName, { color: colors.text }]}>Children</Text>
+                              <Text style={[styles.travelerCategoryAge, { color: isLight ? '#64748B' : '#94A3B8' }]}>Age 2-12</Text>
+                            </View>
+                            <View style={[styles.stepperPillWrap, { backgroundColor: isLight ? '#FFFFFF' : 'rgba(255,255,255,0.08)', borderColor: isLight ? '#CBD5E1' : colors.cardBorder }]}>
+                              <TouchableOpacity
+                                style={styles.stepperBtnRef}
+                                onPress={() => setChildrenCount((prev) => Math.max(0, prev - 1))}
+                              >
+                                <Text style={[styles.stepperBtnRefText, { color: colors.text }]}>-</Text>
+                              </TouchableOpacity>
+                              <Text style={[styles.stepperCountRefText, { color: colors.text }]}>{childrenCount}</Text>
+                              <TouchableOpacity
+                                style={[styles.stepperBtnRef, isMaxReached && { opacity: 0.4 }]}
+                                onPress={() => {
+                                  if (adultsCount + childrenCount >= maxAllowedGuests) {
+                                    Alert.alert('Capacity Reached', `Maximum room capacity is ${maxAllowedGuests} guest${maxAllowedGuests > 1 ? 's' : ''}.`);
+                                    return;
+                                  }
+                                  setChildrenCount((prev) => prev + 1);
+                                }}
+                              >
+                                <Text style={[styles.stepperBtnRefText, { color: colors.text }]}>+</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
                         </View>
                       </View>
-
-                      {/* Children Card */}
-                      <View style={styles.travelerCategoryCard}>
-                        <View>
-                          <Text style={styles.travelerCategoryName}>Children</Text>
-                          <Text style={styles.travelerCategoryAge}>Age 2-12</Text>
-                        </View>
-                        <View style={styles.stepperPillWrap}>
-                          <TouchableOpacity
-                            style={styles.stepperBtnRef}
-                            onPress={() => setChildrenCount((prev) => Math.max(0, prev - 1))}
-                          >
-                            <Text style={styles.stepperBtnRefText}>-</Text>
-                          </TouchableOpacity>
-                          <Text style={styles.stepperCountRefText}>{childrenCount}</Text>
-                          <TouchableOpacity
-                            style={styles.stepperBtnRef}
-                            onPress={() => setChildrenCount((prev) => Math.min(6, prev + 1))}
-                          >
-                            <Text style={styles.stepperBtnRefText}>+</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
+                    );
+                  })()}
 
                   {/* --- 3. GUEST INFORMATION DETAILS CARD --- */}
-                  <View style={styles.guestInfoOuterCard}>
-                    <Text style={styles.guestInfoSectionHeader}>
+                  <View style={[styles.guestInfoOuterCard, { backgroundColor: isLight ? '#FFFBEB' : 'rgba(255, 255, 255, 0.04)', borderColor: isLight ? '#FDE68A' : colors.cardBorder }]}>
+                    <Text style={[styles.guestInfoSectionHeader, { color: isLight ? '#D97706' : '#F5B800' }]}>
                       GUEST INFORMATION DETAILS ({totalGuestsCount} GUESTS)
                     </Text>
 
@@ -1211,14 +1235,14 @@ export default function StayDetails() {
                         const isPrimary = idx === 0;
 
                         return (
-                          <View key={`guest_form_${idx}`} style={styles.guestDetailBox}>
+                          <View key={`guest_form_${idx}`} style={[styles.guestDetailBox, { backgroundColor: isLight ? '#FFFFFF' : 'rgba(255, 255, 255, 0.04)', borderColor: isLight ? '#E2E8F0' : colors.cardBorder }]}>
                             <View style={styles.guestDetailHeaderRow}>
-                              <Text style={styles.guestDetailHeaderTitle}>
+                              <Text style={[styles.guestDetailHeaderTitle, { color: isLight ? '#D97706' : '#F5B800' }]}>
                                 {isPrimary ? 'PRIMARY GUEST (GUEST 1)' : `GUEST ${idx + 1}`}
                               </Text>
                               {isPrimary && (
-                                <View style={styles.mainContactBadge}>
-                                  <Text style={styles.mainContactBadgeText}>MAIN CONTACT</Text>
+                                <View style={[styles.mainContactBadge, { backgroundColor: isLight ? '#FEF3C7' : 'rgba(245, 184, 0, 0.15)' }]}>
+                                  <Text style={[styles.mainContactBadgeText, { color: isLight ? '#B45309' : '#F5B800' }]}>MAIN CONTACT</Text>
                                 </View>
                               )}
                             </View>
@@ -1226,28 +1250,28 @@ export default function StayDetails() {
                             <View style={styles.guestFieldsRow}>
                               {/* Full Name */}
                               <View style={styles.guestFieldBlock}>
-                                <Text style={styles.guestInputLabel}>FULL NAME</Text>
+                                <Text style={[styles.guestInputLabel, { color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.7)' }]}>FULL NAME *</Text>
                                 <TextInput
-                                  style={styles.guestRefInput}
+                                  style={[styles.guestRefInput, { backgroundColor: isLight ? '#FFFFFF' : 'rgba(255, 255, 255, 0.08)', borderColor: isLight ? '#CBD5E1' : colors.cardBorder, color: colors.text }]}
                                   value={gItem.fullName}
                                   onChangeText={(val) => {
                                     handleUpdateGuestInfo(idx, 'fullName', val);
                                     if (isPrimary) setGuestName(val);
                                   }}
                                   placeholder={isPrimary ? 'Full Name' : `Guest ${idx + 1} Full Name`}
-                                  placeholderTextColor="#94A3B8"
+                                  placeholderTextColor={isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.4)'}
                                 />
                               </View>
 
                               {/* Aadhaar Card Number */}
                               <View style={styles.guestFieldBlock}>
-                                <Text style={styles.guestInputLabel}>AADHAAR CARD NUMBER</Text>
+                                <Text style={[styles.guestInputLabel, { color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.7)' }]}>AADHAAR CARD NUMBER *</Text>
                                 <TextInput
-                                  style={styles.guestRefInput}
+                                  style={[styles.guestRefInput, { backgroundColor: isLight ? '#FFFFFF' : 'rgba(255, 255, 255, 0.08)', borderColor: isLight ? '#CBD5E1' : colors.cardBorder, color: colors.text }]}
                                   value={gItem.aadhaarNumber}
                                   onChangeText={(val) => handleUpdateGuestInfo(idx, 'aadhaarNumber', val)}
                                   placeholder="12-Digit Aadhaar No"
-                                  placeholderTextColor="#94A3B8"
+                                  placeholderTextColor={isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.4)'}
                                   keyboardType="numeric"
                                   maxLength={12}
                                 />
@@ -1255,16 +1279,16 @@ export default function StayDetails() {
 
                               {/* Phone Number */}
                               <View style={styles.guestFieldBlock}>
-                                <Text style={styles.guestInputLabel}>PHONE NUMBER</Text>
+                                <Text style={[styles.guestInputLabel, { color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.7)' }]}>PHONE NUMBER * (STARTING WITH 6-9)</Text>
                                 <TextInput
-                                  style={styles.guestRefInput}
+                                  style={[styles.guestRefInput, { backgroundColor: isLight ? '#FFFFFF' : 'rgba(255, 255, 255, 0.08)', borderColor: isLight ? '#CBD5E1' : colors.cardBorder, color: colors.text }]}
                                   value={gItem.phoneNumber}
                                   onChangeText={(val) => {
                                     handleUpdateGuestInfo(idx, 'phoneNumber', val);
                                     if (isPrimary) setGuestMobile(val);
                                   }}
-                                  placeholder="10-Digit Phone No"
-                                  placeholderTextColor="#94A3B8"
+                                  placeholder="10-Digit Phone No (6-9)"
+                                  placeholderTextColor={isLight ? '#94A3B8' : 'rgba(255, 255, 255, 0.4)'}
                                   keyboardType="phone-pad"
                                   maxLength={10}
                                 />
@@ -1527,8 +1551,8 @@ export default function StayDetails() {
                             Alert.alert('Validation Error', `Please enter a valid 12-digit Aadhaar Card Number for Person ${i + 1} (${g.fullName}).`);
                             return;
                           }
-                          if (!g.phoneNumber || g.phoneNumber.replace(/[^\d]/g, '').length !== 10) {
-                            Alert.alert('Validation Error', `Please enter a valid 10-digit Mobile Number for Person ${i + 1} (${g.fullName}).`);
+                          if (!g.phoneNumber || !isValidIndianMobile(g.phoneNumber)) {
+                            Alert.alert('Validation Error', `Please enter a valid 10-digit Indian Mobile Number starting with 6, 7, 8, or 9 for Person ${i + 1} (${g.fullName}).`);
                             return;
                           }
                         }
@@ -1674,6 +1698,17 @@ export default function StayDetails() {
                               customer_phone: guestPhoneVal,
                               customer_email: guestEmailVal,
                               customer_address: `${stay.name}, ${stay.location || 'Bangalore'}`,
+                              product_details: `${stay.name} (${selectedRoom.name} • ${selectedCheckInItem.fullDateStr} to ${selectedCheckOutItem.fullDateStr})`,
+                              hotel_name: stay.name,
+                              room_type: selectedRoom.name,
+                              items: [
+                                {
+                                  name: `${stay.name} - ${selectedRoom.name}`,
+                                  quantity: roomsCount,
+                                  price: grandTotal,
+                                  category: 'Stay',
+                                },
+                              ],
                               amount: grandTotal,
                               order_type: 'booking',
                               type: 'Stay',
@@ -1911,6 +1946,16 @@ export default function StayDetails() {
               customer_latitude: 12.9498,
               customer_longitude: 77.6289,
               product_details: `${stay.name} (${selectedRoom.name} • ${selectedCheckInItem.fullDateStr} to ${selectedCheckOutItem.fullDateStr})`,
+              hotel_name: stay.name,
+              room_type: selectedRoom.name,
+              items: [
+                {
+                  name: `${stay.name} - ${selectedRoom.name}`,
+                  quantity: roomsCount,
+                  price: grandTotal,
+                  category: 'Stay',
+                },
+              ],
               amount: grandTotal,
               order_type: 'booking',
               type: 'Stay',

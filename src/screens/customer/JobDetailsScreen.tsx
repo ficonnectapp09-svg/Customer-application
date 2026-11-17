@@ -28,6 +28,7 @@ import { useAuthGuardStore } from '../../store/authGuardStore';
 import { apiFetch } from '../../services/api';
 import { useNotificationStore } from '../../store/notificationStore';
 import { dispatchCustomerNotification } from '../../services/notificationService';
+import { isValidIndianMobile } from '../../utils/validation';
 
 const { width, height } = Dimensions.get('window');
 
@@ -306,8 +307,8 @@ export default function JobDetailsScreen() {
       showToast('Please enter your email address');
       return;
     }
-    if (!applicantPhone.trim()) {
-      showToast('Please enter your contact number');
+    if (!applicantPhone.trim() || !isValidIndianMobile(applicantPhone)) {
+      showToast('Please enter a valid 10-digit Indian mobile number starting with 6-9');
       return;
     }
 

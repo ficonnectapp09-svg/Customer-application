@@ -121,7 +121,7 @@ export default function LiveTracking() {
   const [routeIndex, setRouteIndex] = useState<number>(3);
   const [distanceRemaining, setDistanceRemaining] = useState<number>(3.2);
   const [eta, setEta] = useState<number>(initialEta);
-  const [isLiveSimulating, setIsLiveSimulating] = useState<boolean>(true);
+  const [isLiveSimulating, setIsLiveSimulating] = useState<boolean>(false);
 
   const activeOrderId = order?.id || order?.order_number || paramOrderId;
   const category = order?.category || 'Daily Needs';
@@ -310,7 +310,7 @@ export default function LiveTracking() {
           customerName={order?.customer_name || 'Customer'}
         />
 
-        {/* Floating ETA Pill on Map */}
+        {/* Floating ETA Pill on Top of Map */}
         <View
           style={[
             styles.floatingEtaCard,
@@ -320,9 +320,9 @@ export default function LiveTracking() {
             },
           ]}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
             <Icons.Zap color="#10B981" size={16} />
-            <Text style={[styles.floatingEtaText, { color: isDark ? '#FFFFFF' : '#101827' }]}>
+            <Text style={[styles.floatingEtaText, { color: isDark ? '#FFFFFF' : '#101827' }]} numberOfLines={1}>
               {isDelivered
                 ? 'Arrived at your doorstep!'
                 : isNearby
@@ -330,7 +330,27 @@ export default function LiveTracking() {
                 : `Express Delivery • ~${eta} mins`}
             </Text>
           </View>
-          <Text style={styles.floatingDistText}>{distanceRemaining} km away</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={styles.floatingDistText}>{distanceRemaining} km</Text>
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                backgroundColor: isLiveSimulating ? '#10B981' : '#F5B800',
+                paddingHorizontal: 8,
+                paddingVertical: 5,
+                borderRadius: 8,
+              }}
+              onPress={() => setIsLiveSimulating((prev) => !prev)}
+              activeOpacity={0.8}
+            >
+              <Icons.Navigation color="#0F172A" size={12} />
+              <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#0F172A' }}>
+                {isLiveSimulating ? 'GPS Active' : 'Start GPS'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -632,7 +652,7 @@ const styles = StyleSheet.create({
   },
   floatingEtaCard: {
     position: 'absolute',
-    bottom: 12,
+    top: 12,
     left: 12,
     right: 12,
     borderWidth: 1.5,

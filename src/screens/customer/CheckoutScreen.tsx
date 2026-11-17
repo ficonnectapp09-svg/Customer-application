@@ -72,6 +72,7 @@ import { useAuthGuardStore } from '../../store/authGuardStore';
 import { apiFetch } from '../../services/api';
 import RazorpayModal, { RazorpayOrderDetails } from '../../components/RazorpayModal';
 import { prepareRazorpayOrder, verifyRazorpayPayment } from '../../services/razorpayService';
+import { isValidIndianMobile } from '../../utils/validation';
 
 const ADDRESSES_STORAGE_KEY = 'connect_app_customer_addresses';
 
@@ -507,8 +508,8 @@ const EMPTY_GUEST_ADDRESS: CustomerAddress = {
       Alert.alert('Validation Error', 'Please enter recipient full name.');
       return;
     }
-    if (!formPhone.trim() || formPhone.trim().length < 10) {
-      Alert.alert('Validation Error', 'Please enter a valid 10-digit mobile number.');
+    if (!formPhone.trim() || !isValidIndianMobile(formPhone)) {
+      Alert.alert('Validation Error', 'Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.');
       return;
     }
     if (!formHouse.trim()) {

@@ -25,7 +25,7 @@ import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 import * as Icons from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SIDEBAR_DATA } from './sidebarData';
-import { normalizeMainCategoryName, fetchCategoryHierarchy } from '../../services/categoryService';
+import { normalizeMainCategoryName, fetchCategoryHierarchy, getCachedHierarchy } from '../../services/categoryService';
 import { apiFetch, resolveImageUrl } from '../../services/api';
 import { useCartStore } from '../../store/cartStore';
 import CartModal from '../../components/CartModal';
@@ -62,6 +62,7 @@ import { useProductStore } from '../../store/productStore';
 import { useTranslation } from '../../store/languageStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { dispatchCustomerNotification } from '../../services/notificationService';
+import { isValidIndianMobile } from '../../utils/validation';
 
 export const CURATED_JOBS_CATALOG: JobItem[] = [];
 const CURATED_SERVICES_CATALOG: Record<string, Array<any>> = {};
@@ -363,12 +364,13 @@ export default function CategoryDetails() {
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubcat, setSelectedSubcat] = useState<string>(routeParams?.subCategoryName || 'All');
+  const [selectedChildCat, setSelectedChildCat] = useState<string>(routeParams?.childCategoryName || 'All');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
   useEffect(() => {
     setPage(1);
-  }, [categoryName, selectedSubcat, searchQuery]);
+  }, [categoryName, selectedSubcat, selectedChildCat, searchQuery]);
 
   const [schedulingItem, setSchedulingItem] = useState<any | null>(null);
   const [selectedDateObj, setSelectedDateObj] = useState<any | null>(null);
@@ -1780,6 +1782,15 @@ export default function CategoryDetails() {
       ? Object.keys(SIDEBAR_DATA[catSidebarKey].subcategories)
       : [];
 
+    // Guarantee essential domain subcategories for canonical main categories
+    if (normTarget === 'products') {
+      ['Electronics', 'Furniture'].forEach(s => { if (!sidebarSubcats.includes(s)) sidebarSubcats.push(s); });
+    } else if (normTarget === 'services') {
+      ['Electrician', 'Plumbers'].forEach(s => { if (!sidebarSubcats.includes(s)) sidebarSubcats.push(s); });
+    } else if (normTarget === 'daily needs') {
+      ['Groceries', 'Diary'].forEach(s => { if (!sidebarSubcats.includes(s)) sidebarSubcats.push(s); });
+    }
+
     // Also collect subcategories from live apiProducts matching this main category
     const apiSubcats = new Set<string>();
     (apiProducts || []).forEach((p: any) => {
@@ -1813,12 +1824,102 @@ export default function CategoryDetails() {
 
   // Sync initial subcategory / child category params
   useEffect(() => {
-    if (routeParams.childCategoryName && availableSubcats.includes(routeParams.childCategoryName)) {
-      setSelectedSubcat(routeParams.childCategoryName);
-    } else if (routeParams.subCategoryName && availableSubcats.includes(routeParams.subCategoryName)) {
+    if (routeParams.subCategoryName && routeParams.subCategoryName !== 'All') {
       setSelectedSubcat(routeParams.subCategoryName);
     }
-  }, [routeParams.subCategoryName, routeParams.childCategoryName, availableSubcats]);
+    if (routeParams.childCategoryName && routeParams.childCategoryName !== 'All') {
+      setSelectedChildCat(routeParams.childCategoryName);
+      if (!routeParams.subCategoryName || routeParams.subCategoryName === 'All') {
+        const cleanCh = cleanStr(routeParams.childCategoryName);
+        const normMain = normalizeMainCategoryName(categoryName);
+        try {
+          const hier = getCachedHierarchy();
+          const mainNode = hier[normMain] || hier[categoryName];
+          if (mainNode && Array.isArray(mainNode.subcategories)) {
+            const parentSub = mainNode.subcategories.find((s) =>
+              s.children?.some((c) => cleanStr(typeof c === 'string' ? c : c.name) === cleanCh)
+            );
+            if (parentSub) {
+              setSelectedSubcat(parentSub.name);
+            }
+          }
+        } catch {}
+      }
+    }
+  }, [routeParams.subCategoryName, routeParams.childCategoryName, categoryName]);
+
+  // Dynamic 3rd-level Child Categories for the currently selected subcategory
+  const availableChildCats = useMemo(() => {
+    if (isStayCategory) {
+      return []; // Handled separately by stayChildCategories
+    }
+    const cleanSub = cleanStr(selectedSubcat);
+    if (!cleanSub || cleanSub === 'all' || cleanSub.startsWith('all ')) {
+      return [];
+    }
+
+    const childSet = new Set<string>();
+
+    // 1. From SIDEBAR_DATA (derived from backend categories tree)
+    const normMain = normalizeMainCategoryName(categoryName);
+    const catSidebarKey = Object.keys(SIDEBAR_DATA).find(
+      (k) => k.toLowerCase() === categoryName.toLowerCase() || k.toLowerCase() === normMain.toLowerCase()
+    );
+    if (catSidebarKey && SIDEBAR_DATA[catSidebarKey]?.subcategories) {
+      const subKey = Object.keys(SIDEBAR_DATA[catSidebarKey].subcategories).find(
+        (k) => cleanStr(k) === cleanSub
+      );
+      if (subKey && Array.isArray(SIDEBAR_DATA[catSidebarKey].subcategories[subKey]?.items)) {
+        SIDEBAR_DATA[catSidebarKey].subcategories[subKey].items.forEach((it) => {
+          if (it && typeof it === 'string' && it.trim() && cleanStr(it) !== cleanSub) {
+            childSet.add(it.trim());
+          }
+        });
+      }
+    }
+
+    // 2. From cachedHierarchy directly (handles full tree nodes)
+    try {
+      const hierarchy = getCachedHierarchy();
+      const hierMain = hierarchy[normMain] || hierarchy[categoryName];
+      if (hierMain && Array.isArray(hierMain.subcategories)) {
+        const hierSub = hierMain.subcategories.find((s) => cleanStr(s.name) === cleanSub);
+        if (hierSub && Array.isArray(hierSub.children)) {
+          hierSub.children.forEach((c) => {
+            const cName = typeof c === 'string' ? c : c?.name;
+            if (cName && typeof cName === 'string' && cName.trim() && cleanStr(cName) !== cleanSub) {
+              childSet.add(cName.trim());
+            }
+          });
+        }
+      }
+    } catch {}
+
+    // 3. Dynamic child categories / itemTypes from vendor products in apiProducts
+    (apiProducts || []).forEach((p: any) => {
+      const pMainNorm = cleanStr(normalizeMainCategoryName(p.mainCategory || p.subNavbarCategory || ''));
+      if (pMainNorm === cleanStr(normMain) || pMainNorm === cleanStr(categoryName)) {
+        const pSub = cleanStr(p.category || p.subcategory || p.subCategory);
+        if (pSub === cleanSub || pSub.includes(cleanSub) || cleanSub.includes(pSub)) {
+          const rawChild = p.childCategory || p.itemType || p.subSubcategory;
+          if (rawChild && typeof rawChild === 'string' && rawChild.trim()) {
+            const trimmed = rawChild.trim();
+            if (cleanStr(trimmed) !== cleanSub && cleanStr(trimmed) !== cleanStr(normMain)) {
+              childSet.add(trimmed);
+            }
+          }
+        }
+      }
+    });
+
+    if (childSet.size === 0) {
+      return [];
+    }
+
+    // Format: "All <Subcategory>" as first pill, then each child category
+    const allPill = `All ${selectedSubcat}`;
+    return [allPill, ...Array.from(childSet)];
+  }, [selectedSubcat, categoryName, isStayCategory, apiProducts]);
 
   // Voice wave animation loop
   useEffect(() => {
@@ -2359,6 +2460,30 @@ export default function CategoryDetails() {
             if (isFurn) return true;
           }
 
+          // Smart Electrician subcategory group matching
+          if (targetSub === 'electrician') {
+            const isElecService = ['electrician', 'solar', 'wiring', 'lineman', 'technician', 'electrical'].some(
+              (term) => sSub.includes(term) || sCat.includes(term) || iType.includes(term) || pName.includes(term)
+            );
+            if (isElecService) return true;
+          }
+
+          // Smart Groceries subcategory group matching
+          if (targetSub === 'groceries' || targetSub === 'grocery') {
+            const isGroc = ['groceries', 'grocery', 'dal', 'chilli', 'powder', 'staple', 'rice', 'atta', 'oil'].some(
+              (term) => sSub.includes(term) || sCat.includes(term) || iType.includes(term) || pName.includes(term)
+            );
+            if (isGroc) return true;
+          }
+
+          // Smart Diary/Dairy subcategory group matching
+          if (targetSub === 'diary' || targetSub === 'dairy') {
+            const isDairy = ['diary', 'dairy', 'milk', 'paneer', 'curd', 'butter', 'cheese', 'ghee'].some(
+              (term) => sSub.includes(term) || sCat.includes(term) || iType.includes(term) || pName.includes(term)
+            );
+            if (isDairy) return true;
+          }
+
           // Smart IT Jobs subcategory group matching: Strictly exclude Non-IT jobs
           if (targetSub === 'it & office' || targetSub === 'it') {
             const isNonIT = sCat === 'non-it' || sSub.includes('data associate') || sSub.includes('system administrator') || pName.includes('data associate') || pName.includes('system administrator');
@@ -2387,6 +2512,33 @@ export default function CategoryDetails() {
           );
         }
       );
+    }
+
+    // Filter by Third-Level Child Category (Level 3)
+    if (selectedChildCat && selectedChildCat !== 'All' && !selectedChildCat.toLowerCase().startsWith('all')) {
+      const cleanChild = cleanStr(selectedChildCat);
+      const cleanSub = cleanStr(selectedSubcat);
+      const distinctiveTerm = cleanSub && cleanChild.startsWith(cleanSub)
+        ? cleanChild.slice(cleanSub.length).trim()
+        : cleanSub && cleanChild.endsWith(cleanSub)
+        ? cleanChild.slice(0, cleanChild.length - cleanSub.length).trim()
+        : cleanChild;
+
+      allServices = allServices.filter((s: any) => {
+        const sChild = cleanStr(s.childCategory || s.subSubcategory || s.rawProduct?.childCategory || s.rawProduct?.subSubcategory);
+        const sItemType = cleanStr(s.itemType || s.rawProduct?.itemType);
+        const sSub = cleanStr(s.subcategory || s.subCategory || s.rawProduct?.subcategory || s.rawProduct?.subCategory);
+        const pName = cleanStr(s.name);
+        const pDesc = cleanStr(s.desc || s.description || s.detail || s.rawProduct?.description);
+
+        const matchChild = Boolean(sChild && (sChild === cleanChild || sChild.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sChild.includes(distinctiveTerm))));
+        const matchItemType = Boolean(sItemType && (sItemType === cleanChild || sItemType.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sItemType.includes(distinctiveTerm))));
+        const matchSub = Boolean(sSub && (sSub === cleanChild || sSub.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sSub.includes(distinctiveTerm))));
+        const matchName = Boolean(pName && (pName.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && pName.includes(distinctiveTerm))));
+        const matchDesc = Boolean(pDesc && (pDesc.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && pDesc.includes(distinctiveTerm))));
+
+        return matchChild || matchItemType || matchSub || matchName || matchDesc;
+      });
     }
 
     // Filter by Search Query
@@ -2740,6 +2892,7 @@ export default function CategoryDetails() {
   }, [
     categoryName,
     selectedSubcat,
+    selectedChildCat,
     searchQuery,
     isProductsCategory,
     selectedProdCategory,
@@ -2812,6 +2965,27 @@ export default function CategoryDetails() {
         (s) => s.subcategory.toLowerCase() === selectedSubcat.toLowerCase()
       );
     }
+    if (selectedChildCat && selectedChildCat !== 'All' && !selectedChildCat.toLowerCase().startsWith('all')) {
+      const cleanChild = cleanStr(selectedChildCat);
+      const cleanSub = cleanStr(selectedSubcat);
+      const distinctiveTerm = cleanSub && cleanChild.startsWith(cleanSub)
+        ? cleanChild.slice(cleanSub.length).trim()
+        : cleanSub && cleanChild.endsWith(cleanSub)
+        ? cleanChild.slice(0, cleanChild.length - cleanSub.length).trim()
+        : cleanChild;
+
+      items = items.filter((s: any) => {
+        const sChild = cleanStr(s.childCategory || s.subSubcategory || s.rawProduct?.childCategory || s.rawProduct?.subSubcategory);
+        const sItemType = cleanStr(s.itemType || s.rawProduct?.itemType);
+        const sSub = cleanStr(s.subcategory || s.subCategory || s.rawProduct?.subcategory || s.rawProduct?.subCategory);
+        const pName = cleanStr(s.name);
+        const matchChild = Boolean(sChild && (sChild === cleanChild || sChild.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sChild.includes(distinctiveTerm))));
+        const matchItemType = Boolean(sItemType && (sItemType === cleanChild || sItemType.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sItemType.includes(distinctiveTerm))));
+        const matchSub = Boolean(sSub && (sSub === cleanChild || sSub.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sSub.includes(distinctiveTerm))));
+        const matchName = Boolean(pName && (pName.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && pName.includes(distinctiveTerm))));
+        return matchChild || matchItemType || matchSub || matchName;
+      });
+    }
     if (query) {
       items = items.filter(
         (s) =>
@@ -2855,6 +3029,7 @@ export default function CategoryDetails() {
   }, [
     isProductsCategory,
     selectedSubcat,
+    selectedChildCat,
     searchQuery,
     draftProdCategory,
     draftProdBrand,
@@ -2873,6 +3048,27 @@ export default function CategoryDetails() {
       items = items.filter(
         (s) => s.subcategory.toLowerCase() === selectedSubcat.toLowerCase()
       );
+    }
+    if (selectedChildCat && selectedChildCat !== 'All' && !selectedChildCat.toLowerCase().startsWith('all')) {
+      const cleanChild = cleanStr(selectedChildCat);
+      const cleanSub = cleanStr(selectedSubcat);
+      const distinctiveTerm = cleanSub && cleanChild.startsWith(cleanSub)
+        ? cleanChild.slice(cleanSub.length).trim()
+        : cleanSub && cleanChild.endsWith(cleanSub)
+        ? cleanChild.slice(0, cleanChild.length - cleanSub.length).trim()
+        : cleanChild;
+
+      items = items.filter((s: any) => {
+        const sChild = cleanStr(s.childCategory || s.subSubcategory || s.rawProduct?.childCategory || s.rawProduct?.subSubcategory);
+        const sItemType = cleanStr(s.itemType || s.rawProduct?.itemType);
+        const sSub = cleanStr(s.subcategory || s.subCategory || s.rawProduct?.subcategory || s.rawProduct?.subCategory);
+        const pName = cleanStr(s.name);
+        const matchChild = Boolean(sChild && (sChild === cleanChild || sChild.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sChild.includes(distinctiveTerm))));
+        const matchItemType = Boolean(sItemType && (sItemType === cleanChild || sItemType.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sItemType.includes(distinctiveTerm))));
+        const matchSub = Boolean(sSub && (sSub === cleanChild || sSub.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sSub.includes(distinctiveTerm))));
+        const matchName = Boolean(pName && (pName.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && pName.includes(distinctiveTerm))));
+        return matchChild || matchItemType || matchSub || matchName;
+      });
     }
     if (query) {
       items = items.filter(
@@ -2920,6 +3116,7 @@ export default function CategoryDetails() {
   }, [
     isDailyNeedsCategory,
     selectedSubcat,
+    selectedChildCat,
     searchQuery,
     draftDnCategory,
     draftDnBrand,
@@ -2939,6 +3136,27 @@ export default function CategoryDetails() {
       items = items.filter(
         (s) => s.subcategory.toLowerCase() === selectedSubcat.toLowerCase()
       );
+    }
+    if (selectedChildCat && selectedChildCat !== 'All' && !selectedChildCat.toLowerCase().startsWith('all')) {
+      const cleanChild = cleanStr(selectedChildCat);
+      const cleanSub = cleanStr(selectedSubcat);
+      const distinctiveTerm = cleanSub && cleanChild.startsWith(cleanSub)
+        ? cleanChild.slice(cleanSub.length).trim()
+        : cleanSub && cleanChild.endsWith(cleanSub)
+        ? cleanChild.slice(0, cleanChild.length - cleanSub.length).trim()
+        : cleanChild;
+
+      items = items.filter((s: any) => {
+        const sChild = cleanStr(s.childCategory || s.subSubcategory || s.rawProduct?.childCategory || s.rawProduct?.subSubcategory);
+        const sItemType = cleanStr(s.itemType || s.rawProduct?.itemType);
+        const sSub = cleanStr(s.subcategory || s.subCategory || s.rawProduct?.subcategory || s.rawProduct?.subCategory);
+        const pName = cleanStr(s.name);
+        const matchChild = Boolean(sChild && (sChild === cleanChild || sChild.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sChild.includes(distinctiveTerm))));
+        const matchItemType = Boolean(sItemType && (sItemType === cleanChild || sItemType.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sItemType.includes(distinctiveTerm))));
+        const matchSub = Boolean(sSub && (sSub === cleanChild || sSub.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sSub.includes(distinctiveTerm))));
+        const matchName = Boolean(pName && (pName.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && pName.includes(distinctiveTerm))));
+        return matchChild || matchItemType || matchSub || matchName;
+      });
     }
     if (query) {
       items = items.filter(
@@ -3012,6 +3230,27 @@ export default function CategoryDetails() {
       items = items.filter(
         (s) => s.subcategory.toLowerCase() === selectedSubcat.toLowerCase()
       );
+    }
+    if (selectedChildCat && selectedChildCat !== 'All' && !selectedChildCat.toLowerCase().startsWith('all')) {
+      const cleanChild = cleanStr(selectedChildCat);
+      const cleanSub = cleanStr(selectedSubcat);
+      const distinctiveTerm = cleanSub && cleanChild.startsWith(cleanSub)
+        ? cleanChild.slice(cleanSub.length).trim()
+        : cleanSub && cleanChild.endsWith(cleanSub)
+        ? cleanChild.slice(0, cleanChild.length - cleanSub.length).trim()
+        : cleanChild;
+
+      items = items.filter((s: any) => {
+        const sChild = cleanStr(s.childCategory || s.subSubcategory || s.rawProduct?.childCategory || s.rawProduct?.subSubcategory);
+        const sItemType = cleanStr(s.itemType || s.rawProduct?.itemType);
+        const sSub = cleanStr(s.subcategory || s.subCategory || s.rawProduct?.subcategory || s.rawProduct?.subCategory);
+        const pName = cleanStr(s.name);
+        const matchChild = Boolean(sChild && (sChild === cleanChild || sChild.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sChild.includes(distinctiveTerm))));
+        const matchItemType = Boolean(sItemType && (sItemType === cleanChild || sItemType.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sItemType.includes(distinctiveTerm))));
+        const matchSub = Boolean(sSub && (sSub === cleanChild || sSub.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && sSub.includes(distinctiveTerm))));
+        const matchName = Boolean(pName && (pName.includes(cleanChild) || (distinctiveTerm && distinctiveTerm.length >= 3 && pName.includes(distinctiveTerm))));
+        return matchChild || matchItemType || matchSub || matchName;
+      });
     }
     if (query) {
       items = items.filter(
@@ -3830,8 +4069,8 @@ export default function CategoryDetails() {
           Alert.alert('Validation Error', `Please enter a valid 12-digit Aadhaar Card Number for Person ${i + 1} (${trv.name || 'Person ' + (i + 1)}).`);
           return;
         }
-        if (!trv.phone || String(trv.phone).replace(/[^\d]/g, '').length !== 10) {
-          Alert.alert('Validation Error', `Please enter a valid 10-digit Mobile Number for Person ${i + 1} (${trv.name || 'Person ' + (i + 1)}).`);
+        if (!trv.phone || !isValidIndianMobile(trv.phone)) {
+          Alert.alert('Validation Error', `Please enter a valid 10-digit Indian Mobile Number starting with 6, 7, 8, or 9 for Person ${i + 1} (${trv.name || 'Person ' + (i + 1)}).`);
           return;
         }
       }
@@ -4334,6 +4573,7 @@ export default function CategoryDetails() {
                     activeOpacity={0.85}
                     onPress={() => {
                       setSelectedSubcat(subName);
+                      setSelectedChildCat('All');
                       setSearchQuery('');
                     }}
                   >
@@ -4355,6 +4595,68 @@ export default function CategoryDetails() {
                 );
               })}
             </ScrollView>
+
+            {/* Child Category / Sub-Subcategory Filter Pills (Level 3) */}
+            {availableChildCats.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingHorizontal: 16,
+                  paddingTop: 8,
+                  paddingBottom: 4,
+                  gap: 8,
+                }}
+                style={{ marginTop: 2, marginBottom: 4 }}
+              >
+                {availableChildCats.map((childItem) => {
+                  const isSel =
+                    selectedChildCat === childItem ||
+                    (childItem.toLowerCase().startsWith('all') &&
+                      (selectedChildCat === 'All' || selectedChildCat === childItem));
+                  return (
+                    <TouchableOpacity
+                      key={childItem}
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 5.5,
+                        borderRadius: 20,
+                        backgroundColor: isSel
+                          ? isLight
+                            ? '#0F172A'
+                            : '#F5B800'
+                          : isLight
+                          ? '#F1F5F9'
+                          : 'rgba(255, 255, 255, 0.06)',
+                        borderColor: isSel
+                          ? isLight
+                            ? '#0F172A'
+                            : '#F5B800'
+                          : isLight
+                          ? '#E2E8F0'
+                          : 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                      }}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setSelectedChildCat(childItem);
+                        setSearchQuery('');
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11.5,
+                          fontWeight: isSel ? '800' : '600',
+                          color: isSel ? (isLight ? '#FFFFFF' : '#0F172A') : colors.text,
+                        }}
+                      >
+                        {childItem}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
           </>
         )}
       </View>
@@ -4622,8 +4924,8 @@ export default function CategoryDetails() {
 
                         <View style={styles.compactRatingRow}>
                           <Icons.Star color="#F5B800" size={11} fill="#F5B800" />
-                          <Text style={styles.compactRatingText}>{hotel.rating}</Text>
-                          <Text style={styles.compactReviewsText}> ({hotel.reviews} reviews)</Text>
+                          <Text style={[styles.compactRatingText, { color: isLight ? '#0F172A' : '#F8FAFC' }]}>{hotel.rating}</Text>
+                          <Text style={[styles.compactReviewsText, { color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.7)' }]}> ({hotel.reviews} reviews)</Text>
                         </View>
 
                         <Text style={styles.stayAmenitiesSummaryText} numberOfLines={1}>
@@ -5426,8 +5728,8 @@ export default function CategoryDetails() {
                         {/* Rating */}
                         <View style={styles.compactRatingRow}>
                           <Icons.Star color="#F5B800" size={11} fill="#F5B800" />
-                          <Text style={styles.compactRatingText}>{service.rating}</Text>
-                          <Text style={styles.compactReviewsText}> ({service.reviews})</Text>
+                          <Text style={[styles.compactRatingText, { color: isLight ? '#0F172A' : '#F8FAFC' }]}>{service.rating}</Text>
+                          <Text style={[styles.compactReviewsText, { color: isLight ? '#64748B' : 'rgba(255, 255, 255, 0.7)' }]}> ({service.reviews})</Text>
                         </View>
 
                         {/* Pricing Row */}
@@ -6493,8 +6795,8 @@ export default function CategoryDetails() {
                             Alert.alert('Validation Error', `Please enter a valid 12-digit Aadhaar Card Number for Person ${i + 1} (${trv.name || 'Person ' + (i + 1)}).`);
                             return;
                           }
-                          if (!trv.phone || String(trv.phone).replace(/[^\d]/g, '').length !== 10) {
-                            Alert.alert('Validation Error', `Please enter a valid 10-digit Mobile Number for Person ${i + 1} (${trv.name || 'Person ' + (i + 1)}).`);
+                          if (!trv.phone || !isValidIndianMobile(trv.phone)) {
+                            Alert.alert('Validation Error', `Please enter a valid 10-digit Indian Mobile Number starting with 6, 7, 8, or 9 for Person ${i + 1} (${trv.name || 'Person ' + (i + 1)}).`);
                             return;
                           }
                         }
@@ -9526,6 +9828,8 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0.3,
+    flex: 1,
+    textAlign: 'center',
   },
   headerCartBtn: {
     width: 36,
@@ -10111,7 +10415,7 @@ const styles = StyleSheet.create({
   compactRatingText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#F8FAFC',
   },
   compactReviewsText: {
     fontSize: 10,

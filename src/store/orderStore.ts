@@ -190,21 +190,20 @@ export function normalizeStoredOrderCategory<T extends Partial<Order>>(order: T)
     return { ...order, category: 'Jobs' as OrderCategory };
   }
 
-  // 2. Authoritative Services / Home Services / Appointments
+  // 2. Authoritative Stay / Hotel / Resort
   if (
-    rawCat === 'Services' || rawCat === 'Service' || rawCat === 'Home Services' ||
-    rawType === 'Services' || rawType === 'Service' || rawType === 'Home Services' ||
-    rawBookingType === 'service' || rawBookingType === 'services' ||
-    rawCat.toLowerCase() === 'services' || rawCat.toLowerCase() === 'service' || rawCat.toLowerCase() === 'home services' ||
-    rawType.toLowerCase() === 'services' || rawType.toLowerCase() === 'service' || rawType.toLowerCase() === 'home services' ||
-    ['healthcare', 'automobile', 'education', 'financial', 'legal', 'it/digital'].includes(rawCat.toLowerCase()) ||
-    ['healthcare', 'automobile', 'education', 'financial', 'legal', 'it/digital'].includes(rawType.toLowerCase()) ||
-    Boolean((order as any).appointment_slot) || Boolean((order as any).appointmentDate) || Boolean((order as any).appointmentTimeSlot) ||
-    rawNum.startsWith('SRV-') ||
-    (/\b(electrician|plumber|plumbers|carpenter|carpenters|cleaning|salon|healthcare|doctor|appliance|pest control|service & jet wash|jet wash|home service|mechanic|painter|technician)\b/i.test(details) && !['stay', 'travel', 'bus', 'flight'].includes(rawCat.toLowerCase())) ||
-    (/\b(electrician|plumber|plumbers|carpenter|carpenters|cleaning|salon|healthcare|doctor|appliance|pest control|service & jet wash|jet wash|home service|mechanic|painter|technician)\b/i.test(anyItemName) && !['stay', 'travel', 'bus', 'flight'].includes(rawCat.toLowerCase()))
+    rawCat === 'Stay' || rawCat.toLowerCase() === 'stay' || rawCat.toLowerCase() === 'hotel' || rawCat.toLowerCase() === 'resort' ||
+    rawType === 'Stay' || rawType.toLowerCase() === 'stay' || rawType.toLowerCase() === 'hotel' || rawType.toLowerCase() === 'resort' ||
+    rawBookingType === 'stay' || rawBookingType === 'hotel' || rawBookingType === 'resort' ||
+    Boolean((order as any).checkInDate) || Boolean((order as any).check_in) ||
+    Boolean((order as any).checkOutDate) || Boolean((order as any).check_out) ||
+    Boolean((order as any).hotel_name) || Boolean((order as any).roomsCount) ||
+    firstItemCat.toLowerCase() === 'viila' || firstItemCat.toLowerCase() === 'villa' || firstItemCat.toLowerCase() === 'resort' || firstItemCat.toLowerCase() === 'hotel' ||
+    anyItemCat.includes('villa') || anyItemCat.includes('viila') || anyItemCat.includes('resort') || anyItemCat.includes('hotel') ||
+    /\b(villa|viila|resort|hotel|deluxe room|room stay|night stay|nights? stay)\b/i.test(details) ||
+    /\b(villa|viila|resort|hotel|deluxe room)\b/i.test(anyItemName)
   ) {
-    return { ...order, category: 'Services' as OrderCategory, order_type: 'booking' };
+    return { ...order, category: 'Stay' as OrderCategory, order_type: 'booking' };
   }
 
   // 3. Authoritative Travel / Bus / Transport
@@ -222,18 +221,21 @@ export function normalizeStoredOrderCategory<T extends Partial<Order>>(order: T)
     return { ...order, category: 'Travel' as OrderCategory, order_type: 'booking' };
   }
 
-  // 4. Authoritative Stay / Hotel / Resort
+  // 4. Authoritative Services / Home Services / Appointments
   if (
-    rawCat === 'Stay' || rawCat.toLowerCase() === 'stay' || rawCat.toLowerCase() === 'hotel' || rawCat.toLowerCase() === 'resort' ||
-    rawType === 'Stay' || rawType.toLowerCase() === 'stay' || rawType.toLowerCase() === 'hotel' || rawType.toLowerCase() === 'resort' ||
-    rawBookingType === 'stay' || rawBookingType === 'hotel' || rawBookingType === 'resort' ||
-    firstItemCat.toLowerCase() === 'viila' || firstItemCat.toLowerCase() === 'villa' || firstItemCat.toLowerCase() === 'resort' || firstItemCat.toLowerCase() === 'hotel' ||
-    anyItemCat.includes('villa') || anyItemCat.includes('viila') || anyItemCat.includes('resort') || anyItemCat.includes('hotel') ||
-    Boolean((order as any).hotel_name) ||
-    /\b(villa|viila|resort|hotel|deluxe room|room stay|night stay|nights? stay)\b/i.test(details) ||
-    /\b(villa|viila|resort|hotel|deluxe room)\b/i.test(anyItemName)
+    rawCat === 'Services' || rawCat === 'Service' || rawCat === 'Home Services' ||
+    rawType === 'Services' || rawType === 'Service' || rawType === 'Home Services' ||
+    rawBookingType === 'service' || rawBookingType === 'services' ||
+    rawCat.toLowerCase() === 'services' || rawCat.toLowerCase() === 'service' || rawCat.toLowerCase() === 'home services' ||
+    rawType.toLowerCase() === 'services' || rawType.toLowerCase() === 'service' || rawType.toLowerCase() === 'home services' ||
+    ['healthcare', 'automobile', 'education', 'financial', 'legal', 'it/digital'].includes(rawCat.toLowerCase()) ||
+    ['healthcare', 'automobile', 'education', 'financial', 'legal', 'it/digital'].includes(rawType.toLowerCase()) ||
+    Boolean((order as any).appointment_slot) || Boolean((order as any).appointmentDate) || Boolean((order as any).appointmentTimeSlot) ||
+    rawNum.startsWith('SRV-') ||
+    (/\b(electrician|plumber|plumbers|carpenter|carpenters|cleaning|salon|healthcare|doctor|appliance|pest control|service & jet wash|jet wash|home service|mechanic|painter|technician)\b/i.test(details) && !['stay', 'travel', 'bus', 'flight'].includes(rawCat.toLowerCase()) && !['stay', 'travel', 'bus', 'flight'].includes(rawType.toLowerCase())) ||
+    (/\b(electrician|plumber|plumbers|carpenter|carpenters|cleaning|salon|healthcare|doctor|appliance|pest control|service & jet wash|jet wash|home service|mechanic|painter|technician)\b/i.test(anyItemName) && !['stay', 'travel', 'bus', 'flight'].includes(rawCat.toLowerCase()) && !['stay', 'travel', 'bus', 'flight'].includes(rawType.toLowerCase()))
   ) {
-    return { ...order, category: 'Stay' as OrderCategory, order_type: 'booking' };
+    return { ...order, category: 'Services' as OrderCategory, order_type: 'booking' };
   }
 
   // 5. Food & Dining

@@ -658,22 +658,14 @@ if ("android" === 'android' && _reactNative.UIManager.setLayoutAnimationEnabledE
       });
     }, [travelFrom, travelTo, travelVehicleType, apiProducts, searchQuery]);
     var handleBookTravelItem = item => {
-      if (item.rawProduct) {
-        navigation.navigate('ProductDetails', {
-          productId: item.rawProduct.id || item.rawProduct._id,
-          product: item.rawProduct,
-          item: item.rawProduct
-        });
-      } else {
-        navigation.navigate('CategoryDetails', {
-          categoryName: 'Travel',
-          subCategoryName: item.subType || 'All',
-          from: item.from,
-          to: item.to,
-          routeInfo: `${item.from} to ${item.to}`,
-          travelItem: item
-        });
-      }
+      navigation.navigate('CategoryDetails', {
+        categoryName: 'Travel',
+        subCategoryName: item.subType || item.busType || 'All',
+        from: item.from,
+        to: item.to,
+        routeInfo: item.from && item.to ? `${item.from} to ${item.to}` : undefined,
+        travelItem: item.rawProduct || item
+      });
     };
     (0, _react.useEffect)(() => {
       var isMounted = true;
