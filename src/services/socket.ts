@@ -454,7 +454,7 @@ class SocketServiceClient {
         clearApiCache('/auth/customer-addresses');
         clearApiCache('/auth/addresses');
         const authStore = require('../store/authStore').useAuthStore;
-        authStore.getState().fetchProfile().catch(() => {});
+        authStore.getState().fetchProfile(true).catch(() => {});
       } catch {}
       this.triggerLocalEvent('addresses_updated', data);
     };
@@ -465,7 +465,7 @@ class SocketServiceClient {
         const { clearApiCache } = require('./api');
         clearApiCache('/auth/customer-profile');
         const authStore = require('../store/authStore').useAuthStore;
-        authStore.getState().fetchProfile().catch(() => {});
+        authStore.getState().fetchProfile(true).catch(() => {});
       } catch {}
       this.triggerLocalEvent('customer_profile_updated', data);
     };
@@ -570,7 +570,7 @@ class SocketServiceClient {
         clearApiCache('/membership/status');
         clearApiCache('/auth/customer-profile');
         const authStore = require('../store/authStore').useAuthStore;
-        authStore.getState().fetchProfile().catch(() => {});
+        authStore.getState().fetchProfile(true).catch(() => {});
       } catch {}
       this.triggerLocalEvent('membership_updated', data);
     };

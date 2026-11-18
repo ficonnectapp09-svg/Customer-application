@@ -19,6 +19,7 @@ import {
   Keyboard,
   Linking,
   InteractionManager,
+  AppState,
 } from 'react-native';
 import { useNavigation, useIsFocused, useRoute, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -671,19 +672,26 @@ export default function CustomerOrders() {
     };
   }, [loadAllOrders]);
 
-  // Gentle fallback polling every 3 seconds while order details modal is open
+  // Socket-aware & AppState-aware fallback polling while order details modal is open:
+  // - Paused when app is backgrounded/inactive
+  // - 20s safety poll when Socket.IO is connected; 10s fallback when disconnected
   useEffect(() => {
     if (!selectedOrderForDetails) return;
+    let lastModalPollAt = Date.now();
     const interval = setInterval(() => {
-      loadAllOrders(true).catch(() => {});
-    }, 3000);
+      if (AppState.currentState !== 'active') return;
+      const socketConnected = Boolean((socketService as any)?.socket?.connected || (socketService as any)?.isConnected);
+      const requiredGapMs = socketConnected ? 20000 : 10000;
+      if (Date.now() - lastModalPollAt >= requiredGapMs) {
+        lastModalPollAt = Date.now();
+        loadAllOrders(true).catch(() => {});
+      }
+    }, 10000);
     return () => clearInterval(interval);
   }, [selectedOrderForDetails, loadAllOrders]);
 
-  // Fetch orders in background once on mount without blocking UI
-  useEffect(() => {
-    loadAllOrders().catch((e) => console.log('Silent load orders err:', e));
-  }, [loadAllOrders]);
+  // Deduplicated mount + focus orders refresh with 15s staleness guard
+  const lastOrdersFocusFetchRef = useRef<number>(0);
 
   // Sync route params if navigated from elsewhere
   useEffect(() => {
@@ -713,9 +721,12 @@ export default function CustomerOrders() {
     }
   }, [route.params?.activeTab, route.params?.category]);
 
-  // Auto-refresh orders silently in background when screen is focused
+  // Auto-refresh orders silently in background when screen is focused (with 15s cooldown to prevent rapid tab bursts)
   useFocusEffect(
     useCallback(() => {
+      const now = Date.now();
+      if (now - lastOrdersFocusFetchRef.current < 15000) return;
+      lastOrdersFocusFetchRef.current = now;
       const task = InteractionManager.runAfterInteractions(() => {
         loadAllOrders(true).catch(() => {});
       });

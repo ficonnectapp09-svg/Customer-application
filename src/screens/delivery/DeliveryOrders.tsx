@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Alert, RefreshControl, AppState } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useOrderStore } from '../../store/orderStore';
 import { useAuthStore } from '../../store/authStore';
@@ -36,10 +36,11 @@ export default function DeliveryOrders() {
       }
       fetchOrdersSilently().finally(() => setLoading(false));
 
-      // Silent auto-refresh every 6 seconds while screen is active
+      // Silent auto-refresh every 15 seconds while screen is active & app is in foreground
       const interval = setInterval(() => {
+        if (AppState.currentState !== 'active') return;
         fetchOrdersSilently();
-      }, 6000);
+      }, 15000);
 
       return () => clearInterval(interval);
     }

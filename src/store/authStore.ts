@@ -9,7 +9,14 @@ import { useActivityStore } from './activityStore';
 import { useNotificationStore } from './notificationStore';
 import { useOrderStore } from './orderStore';
 
+let lastProfileFetchAt = 0;
+let lastProfileUserId = '';
+let inFlightProfilePromise: Promise<User | null> | null = null;
+
 export function clearSessionAndUserData() {
+  lastProfileFetchAt = 0;
+  lastProfileUserId = '';
+  inFlightProfilePromise = null;
   try { useCartStore.getState().clearCart(false); } catch {}
   try { useWishlistStore.getState().clearWishlist(false); } catch {}
   try { useActivityStore.getState().clearActivity(); } catch {}
@@ -86,7 +93,7 @@ interface AuthState {
   addWalletBalance: (amount: number) => void;
   deductWalletBalance: (amount: number) => boolean;
   getWalletBalance: () => number;
-  fetchProfile: () => Promise<User | null>;
+  fetchProfile: (force?: boolean) => Promise<User | null>;
   updateProfile: (fields: Partial<User>) => Promise<User | null>;
 }
 
@@ -344,37 +351,49 @@ export const useAuthStore = create<AuthState>()(
     if (!state.currentUser) return 0;
     return state.currentUser?.walletBalance ?? 0;
   },
-  fetchProfile: async () => {
+  fetchProfile: async (force = false) => {
     const state = get();
     if (!state.currentUser || !state.currentUser.id) return null;
     const uId = state.currentUser.id;
 
-    try {
-      let response: any = null;
-      // If we have an authentication token, query /auth/customer-profile directly without queryParam
-      // to let the backend resolve identity securely from JWT without triggering IDOR check
-      if (state.token) {
-        response = await apiFetch('/auth/customer-profile', { method: 'GET', skipCache: true }).catch(() => null);
-      }
+    // Coalesce concurrent calls & honor 25s freshness window unless force=true (socket/mutation/pull-to-refresh)
+    if (!force && lastProfileUserId === uId && Date.now() - lastProfileFetchAt < 25000) {
+      return state.currentUser;
+    }
+    if (inFlightProfilePromise && lastProfileUserId === uId) {
+      return inFlightProfilePromise;
+    }
 
-      if (!response || response.status === 'error' || response.error || response.code === 'FORBIDDEN_IDOR' || response.status === 403) {
-        let targetParam = '';
-        if (state.currentUser.customerId && String(state.currentUser.customerId).startsWith('FIC-CUS-')) {
-          targetParam = `customerId=${encodeURIComponent(state.currentUser.customerId)}`;
-        } else if (state.currentUser.email) {
-          targetParam = `email=${encodeURIComponent(state.currentUser.email)}`;
-        } else if (state.currentUser.phone) {
-          targetParam = `phone=${encodeURIComponent(state.currentUser.phone)}`;
-        } else {
-          targetParam = `userId=${encodeURIComponent(uId)}`;
+    lastProfileUserId = uId;
+    const runFetch = (async (): Promise<User | null> => {
+      try {
+        const membershipPromise = apiFetch('/membership/status', { method: 'GET', skipCache: true }).catch(() => null);
+        let response: any = null;
+        // If we have an authentication token, query /auth/customer-profile directly without queryParam
+        // to let the backend resolve identity securely from JWT without triggering IDOR check
+        if (state.token) {
+          response = await apiFetch('/auth/customer-profile', { method: 'GET', skipCache: true }).catch(() => null);
         }
-        response = await apiFetch(`/auth/customer-profile?${targetParam}`, {
-          method: 'GET',
-          skipCache: true,
-        }).catch(() => null);
-      }
 
-      const membershipRes: any = await apiFetch('/membership/status', { method: 'GET', skipCache: true }).catch(() => null);
+        if (!response || response.status === 'error' || response.error || response.code === 'FORBIDDEN_IDOR' || response.status === 403) {
+          let targetParam = '';
+          if (state.currentUser?.customerId && String(state.currentUser.customerId).startsWith('FIC-CUS-')) {
+            targetParam = `customerId=${encodeURIComponent(state.currentUser.customerId)}`;
+          } else if (state.currentUser?.email) {
+            targetParam = `email=${encodeURIComponent(state.currentUser.email)}`;
+          } else if (state.currentUser?.phone) {
+            targetParam = `phone=${encodeURIComponent(state.currentUser.phone)}`;
+          } else {
+            targetParam = `userId=${encodeURIComponent(uId)}`;
+          }
+          response = await apiFetch(`/auth/customer-profile?${targetParam}`, {
+            method: 'GET',
+            skipCache: true,
+          }).catch(() => null);
+        }
+
+        const membershipRes: any = await membershipPromise;
+        lastProfileFetchAt = Date.now();
 
       if (response && (response.status === 'success' || response.success) && (response.data || response.user)) {
         const profData = response.data || response.user;
@@ -472,13 +491,24 @@ export const useAuthStore = create<AuthState>()(
         }
         return mergedUser;
       }
-    } catch (err) {
-      console.warn('Error fetching profile:', err);
-    }
+      } catch (err) {
+        console.warn('Error fetching profile:', err);
+      }
 
-    return state.currentUser;
+      return state.currentUser;
+    })();
+
+    inFlightProfilePromise = runFetch;
+    try {
+      return await runFetch;
+    } finally {
+      if (inFlightProfilePromise === runFetch) {
+        inFlightProfilePromise = null;
+      }
+    }
   },
   updateProfile: async (fields) => {
+    lastProfileFetchAt = 0;
     const state = get();
     if (!state.currentUser) return null;
     const updatedUser = { ...state.currentUser, ...fields };
