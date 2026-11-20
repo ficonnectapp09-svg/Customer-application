@@ -62,7 +62,9 @@ export function resolveImageUrl(url: any): string {
   const trimmed = url.trim();
   if (trimmed.startsWith('data:image')) return trimmed;
   // Permanent Cloudinary CDN URLs - fully preserved
-  if (trimmed.startsWith('https://res.cloudinary.com/')) return trimmed;
+  if (trimmed.startsWith('https://res.cloudinary.com/') || trimmed.startsWith('http://res.cloudinary.com/')) {
+    return trimmed.replace(/^http:\/\//, 'https://');
+  }
   // Standard HTTPS/HTTP URLs - fully preserved
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
   // Raw storage object keys (e.g. products/xxx.jpg, customers/xxx.jpg) routed through backend durable media resolver
