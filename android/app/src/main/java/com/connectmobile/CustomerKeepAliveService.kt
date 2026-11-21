@@ -251,9 +251,9 @@ class CustomerKeepAliveService : Service() {
                     val prefs = getSharedPreferences(NotificationModule.PREFS_NAME, Context.MODE_PRIVATE)
                     val customerId = prefs.getString(NotificationModule.KEY_CUSTOMER_ID, "") ?: ""
                     val authToken = prefs.getString(NotificationModule.KEY_AUTH_TOKEN, "") ?: ""
-                    val apiUrl = prefs.getString(NotificationModule.KEY_API_URL, "https://api.ficapp.in") ?: "https://api.ficapp.in"
+                    val apiUrl = prefs.getString(NotificationModule.KEY_API_URL, "") ?: ""
 
-                    if (customerId.isNotBlank() && authToken.isNotBlank()) {
+                    if (customerId.isNotBlank() && authToken.isNotBlank() && apiUrl.isNotBlank()) {
                         pollCycleCount++
 
                         // 1. Poll customer notifications
